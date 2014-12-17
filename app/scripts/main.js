@@ -15,16 +15,14 @@
  */
 
 (function(exports) {
+  'use strict';
 
-'use strict';
-
-// @codekit-prepend 'third_party/signals.min.js'
-// @codekit-prepend 'third_party/requestAnimationFrame.js'
+  // @codekit-prepend 'third_party/signals.min.js'
+  // @codekit-prepend 'third_party/requestAnimationFrame.js'
 
 exports.IOWA = {};
 
 // TODO: Make the codekit syntax work with gulp.
 // @codekit-append 'bootstrap.js'
-
 
 })(window);

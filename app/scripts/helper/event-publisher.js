@@ -90,5 +90,4 @@ CDS.EventPublisher = (function() {
     remove: remove
   };
 
-
 })();
