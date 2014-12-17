@@ -55,15 +55,15 @@ CDS.Schedule = (function() {
   var BLUE = '#4A90E2';
 
   var days = [{
-    "Breakfast": [{
+    Breakfast: [{
       start: 8, duration: 1
     }],
-    "Keynote": [{
+    Keynote: [{
       start: 9, duration: 0.5
     },{
       start: 17, duration: 0.25
     }],
-    "Sessions": [{
+    Sessions: [{
       start: 9.5, duration: 1.5
     }, {
       start: 11.5, duration: 1.5
@@ -72,7 +72,7 @@ CDS.Schedule = (function() {
     },{
       start: 16.5, duration: 0.5
     }],
-    "Break": [{
+    Break: [{
       start: 11, duration: 0.5
     },{
       start: 13, duration: 1.5
@@ -84,10 +84,10 @@ CDS.Schedule = (function() {
     }]
   },
   {
-    "Breakfast": [{
+    Breakfast: [{
       start: 8, duration: 1.5
     }],
-    "Sessions": [{
+    Sessions: [{
       start: 9.5, duration: 2
     },{
       start: 12, duration: 1
@@ -97,7 +97,7 @@ CDS.Schedule = (function() {
     "Breakout Discussion": [{
       start: 16.5, duration: 1.5
     }],
-    "Break": [{
+    Break: [{
       start: 11.5, duration: 0.5
     },{
       start: 13, duration: 1.25
