@@ -9,7 +9,6 @@
   "disallowSpacesInsideArrayBrackets": true,
   "disallowSpacesInsideParentheses": true,
   "disallowSpaceAfterObjectKeys": true,
-  "disallowQuotedKeysInObjects": true,
   "requireSpaceBeforeBinaryOperators": ["?", "+", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
   "disallowSpaceAfterBinaryOperators": ["!"],
   "requireSpaceAfterBinaryOperators": ["?", ",", "+", "/", "*", ":", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
