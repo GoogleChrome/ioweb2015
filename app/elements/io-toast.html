@@ -1,0 +1,73 @@
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<!--
+`io-toast` extends `paper-toast` and adds listening capability.
+
+Example:
+
+    <paper-button id="myButton">Example button</paper-button>
+    <io-toast text="Your draft has been discarded."></io-toast>
+    <script>
+
+      document.querySelector('io-toast').listen(
+          document.querySelector('#myButton'),
+          'click',
+          'message'));
+    </script>
+
+@element io-toast
+@extends paper-toast
+-->
+<polymer-element name="io-toast" extends="paper-toast">
+  <template>
+    <shadow></shadow>
+  </template>
+  <script>
+  Polymer({
+
+    listeners_: null,
+
+    created: function() {
+      this.listeners_ = [];
+    },
+
+    detached: function() {
+      this.listeners_.forEach(function(listener) {
+        listener.target.removeEventListener(
+            listener.eventType, listener.handler);
+      });
+    },
+
+    /**
+     * Makes toast listen to notifications from another element.
+     * @method listen
+     * @param {Element} el Target sending the notification.
+     * @param {string} eventType Notification (event) type.
+     * @param {string} messageFieldName Name of the field in event.details
+     *    containing the message for the user.
+     */
+    listen: function(el, eventType, messageFieldName) {
+      var handler = function(e) {
+        this.text = e.detail[messageFieldName];
+        this.show();
+      }.bind(this);
+      el.addEventListener(eventType, handler);
+      this.listeners_.push({
+        target: el,
+        eventType: eventType,
+        handler: handler
+      });
+    },
+
+    /**
+     * Shows the message in the toast.
+     * @method showMessage
+     * @param {string} message Message to show.Notification (event) type.
+     */
+    showMessage: function(message) {
+      this.text = message;
+      this.show();
+    }
+  });
+  </script>
+</polymer-element>
