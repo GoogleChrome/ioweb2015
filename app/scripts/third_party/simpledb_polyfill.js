@@ -118,7 +118,7 @@
         var tx = that._db.transaction(STORE, 'readwrite');
         var store = tx.objectStore(STORE);
         var results = [];
-        for (var key of keys) {
+        for (var i = 0, key; key = keys[i]; i++) {
           store.get(key).onsuccess(function(result) {
             results.push(result);
           });
@@ -132,7 +132,7 @@
       return new Promise(function(resolve, reject) {
         var tx = that._db.transaction(STORE, 'readwrite');
         var store = tx.objectStore(STORE);
-        for (var entry of entries) {
+        for (var i = 0, entry; entry = entries[i]; i++) {
           store.put(entry.value, entry.key);
         }
         tx.oncomplete = function() { resolve(undefined); };
@@ -144,7 +144,7 @@
       return new Promise(function(resolve, reject) {
         var tx = that._db.transaction(STORE, 'readwrite');
         var store = tx.objectStore(STORE);
-        for (var key of keys)
+        for (var i = 0, key; key = keys[i]; i++)
         store.delete(key);
         tx.oncomplete = function() { resolve(undefined); };
         tx.onabort = function() { reject(tx.error); };
