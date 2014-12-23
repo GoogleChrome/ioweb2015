@@ -15,12 +15,9 @@
  */
 
 if ('serviceWorker' in navigator) {
-
-  // TODO: change scope accordingly to the production address.
-  navigator.serviceWorker.register('/sw.js', {
-    scope: '/'
+  navigator.serviceWorker.register('sw.js', {
+    scope: './'
   }).then(function(registration) {
-
     var newServiceWorkerAvailableMessage =
         'A new version of this page is available. Please force-refresh.';
 
@@ -33,7 +30,6 @@ if ('serviceWorker' in navigator) {
 
     // We should also start tracking for any updates to the Service Worker.
     registration.onupdatefound = function(event) {
-
       IOWA.Elements.Toast.showMessage(
           'A new version has been found... Installing...');
 
@@ -48,6 +44,6 @@ if ('serviceWorker' in navigator) {
       };
     };
   }, function(err) {
-    console.log(err);
+    console.error('Service worker registration failed:', err);
   });
 }
