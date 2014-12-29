@@ -279,12 +279,13 @@ function generateShedConfig(baseDirectory) {
   var shedConfigDirectory = baseDirectory + '/scripts/auto_generated/';
 
   // TODO (jeffposnick): This list can definitely be pared down.
+  // TODO: Precache the experiment files as well (once they're added).
   var filesToPrecache = gulp.src([
     baseDirectory + '/**.html',
     baseDirectory + '/fonts/**/*',
     baseDirectory + '/styles/**.css',
     baseDirectory + '/scripts/**.js',
-    baseDirectory + '/elements/**/*.{js,html,css}',
+    baseDirectory + '/elements/**/*',
     baseDirectory + '/bower_components/**/*.{js,html,css}',
     baseDirectory + '/images/**/*.{svg,png,jpg,ico,gif}'
   ], {read: false});
@@ -309,7 +310,7 @@ function generateShedConfig(baseDirectory) {
 
 // There are a different set of files that need to be cached in the dev and dist environments,
 // so we can't just use the same shed configuration from dev to dist.
-// E.g., in the dist environment, we want to cache the vulanized Polymer elements, not the
+// E.g., in the dist environment, we want to cache the vulcanized Polymer elements, not the
 // individual components.
 gulp.task('generate-shed-config-dev', function() {
   return generateShedConfig(APP_DIR);

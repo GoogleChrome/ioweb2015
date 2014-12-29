@@ -20,7 +20,8 @@ var shedConfigFile = 'scripts/auto_generated/shed-config.js';
 try {
   importScripts(shedConfigFile);
 } catch (e) {
-  console.log('Unable to load shed configuration from', shedConfigFile);
+  console.log('Unable to load shed configuration from %s due to %O' +
+              'Falling back to an empty configuration.', shedConfigFile, e);
   ShedConfig = {
     filesToPrecache: []
   };
