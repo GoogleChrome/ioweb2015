@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
+// If there is no shed config (i.e. because we're running in a dev environment and don't want to
+// cache things, then just use a default config variable.
+var shedConfigFile = 'scripts/auto_generated/shed-config.js';
+try {
+  importScripts(shedConfigFile);
+} catch (e) {
+  console.log('Unable to load shed configuration from %s due to %O' +
+              'Falling back to an empty configuration.', shedConfigFile, e);
+  ShedConfig = {
+    filesToPrecache: []
+  };
+}
+
 importScripts('bower_components/shed/dist/shed.js');
 importScripts('scripts/shed-offline-analytics.js');
 
-shed.precache(['/temporary_api/precache/test.html']);
-
-shed.router.get('/temporary_api/precache/:resource', shed.cacheOnly);
-shed.router.get('/temporary_api/networkOnly/:resource', shed.networkOnly);
-shed.router.get('/temporary_api/cacheFirst/:resource', shed.cacheFirst);
+shed.precache(ShedConfig.filesToPrecache);

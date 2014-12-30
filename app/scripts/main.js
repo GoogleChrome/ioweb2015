@@ -15,7 +15,6 @@
  */
 
 (function(exports) {
-
   'use strict';
 
   // @codekit-prepend '../bower_components/js-signals/dist/signals.min.js'
@@ -24,5 +23,12 @@
 
   // TODO: Make the codekit syntax work with gulp.
   // @codekit-append 'bootstrap.js'
-
 })(window);
+
+window.onerror = function(message, file, lineNumber) {
+  try {
+    IOWA.Analytics.trackError(file + ':' + lineNumber, message);
+  } catch (e) {
+    // No-op to make sure we don't trigger an exception from within the global exception handler.
+  }
+};

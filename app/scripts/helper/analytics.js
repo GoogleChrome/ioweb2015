@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-CDS.Analytics = (function() {
-
+IOWA.Analytics = (function() {
   "use strict";
 
   function track(name, type, value) {
-
     if (typeof ga === 'function') {
-      ga('send', 'event', name, type, value);
+      ga('send', 'event', name, type, String(value));
     }
   }
 
-  return {
-    track: track
-  };
+  function trackError(location, message) {
+    track('error', location, message);
+  }
 
+  return {
+    track: track,
+    trackError: trackError
+  };
 })();

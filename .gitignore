@@ -17,3 +17,6 @@ backend/bin
 .tmp
 .DS_Store
 *.pyc
+
+# Ignore the generated shed configuration file. The template for the file is checked in to git.
+shed-config.js

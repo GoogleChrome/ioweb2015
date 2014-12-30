@@ -27,8 +27,7 @@ Start any static web server in `app/` or `gulp serve` to leverage live-reload,
 serve with a standalone backend via `gulp serve:backend`
 or using App Engine dev server: `gulp serve:gae`.
 
-**Note**: If you're using a static server, you'll have to run `gulp` or `gulp sass` at least once
-to generate CSS from the .scss files.
+**Note**: You have to run `gulp` or `gulp sass` at least once to generate CSS from the .scss files.
 
 ### Building
 
@@ -36,7 +35,7 @@ Run `gulp`. Then hit `http://localhost:<PORT>/dist/app/`. The unbuilt version is
 
 **Note**: Build won't succeed if either `gulp jshint` or `gulp jscs` reports errors.
 
-## Backend
+### Backend
 
 `gulp backend` will build a self-sufficient backend server and place the binary in `backend/bin/server`.
 
@@ -49,3 +48,18 @@ To deploy complete application on App Engine:
 1. Run `gulp` which will build both frontend and backend in `dist` directory.
 2. Run `gcloud preview app deploy [--version <v>] dist/backend`.
 
+### Caching Considerations
+
+Aggressive caching isn't appropriate for a development environment,
+as it can prevent local changes from being reflected in the browser.
+Service worker-based caching further complicates things, as it's possible to precache files.
+
+What gets precached is determined via the `generate-shed-config-*` gulp tasks.
+The `generate-shed-config-dev` task will cause files under `app/` (i.e. in the dev environment) to be precached,
+and it normally shouldn't be run,
+unless you're explicitly testing service worker caching behavior in dev.
+
+The `generate-shed-config-dist` task is automatically run as the subtask of the `default` task,
+and will make sure that the appropriate files generated under `dist/` are precached in the production site.
+
+_When in doubt, shift-reload will load a version of the page not controlled by a service worker._

@@ -17,12 +17,16 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var bower = require('gulp-bower');
 var chmod = require('gulp-chmod');
+var inject = require('gulp-inject');
+var rename = require('gulp-rename');
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
 
 var STATIC_VERSION = 1; // Cache busting static assets.
 var VERSION = argv.build || STATIC_VERSION;
+
+var SHED_CONFIG_FILE = 'shed-config.js';
 
 // TODO(ericbidelman|bckenny): fill in with default static asset base URL
 // var STATIC_BASE_URL = argv.baseurl ? argv.baseurl : '';
@@ -196,10 +200,10 @@ gulp.task('jscs', function() {
 });
 
 // Crush JS
-// TODO: /sw.js isn't being uglified. It needs to be copied into the top-level
+// TODO: sw.js isn't being uglified. It needs to be copied into the top-level
 // directory of the site, which is currently being done in the copy-assets task.
 gulp.task('uglify', function() {
-  return gulp.src([APP_DIR + '/scripts/**/*.js'])
+  return gulp.src([APP_DIR + '/scripts/**/*.js', '!**/' + SHED_CONFIG_FILE])
     .pipe(reload({stream: true, once: true}))
     .pipe($.uglify({preserveComments: 'some'}))
     .pipe(gulp.dest(DIST_STATIC_DIR + '/' + APP_DIR + '/scripts'))
@@ -232,6 +236,12 @@ gulp.task('pagespeed', pagespeed.bind(null, {
 
 // Watch Files For Changes & Reload
 gulp.task('serve', ['sass'], function() {
+  // By default, if you're running 'serve', you probably don't want shed to add anything to the
+  // service worker cache. (Local changes won't be picked up if there's a cached version.)
+  // You can manually run the 'generate-shed-config-dev' task after running 'serve' if you
+  // want to get the pre-caching behavior.
+  del([APP_DIR + '/**/' + SHED_CONFIG_FILE]);
+
   browserSync({
     notify: false,
     // Run as an https by uncommenting 'https: true'
@@ -304,7 +314,7 @@ gulp.task('backend:test', function(cb) {
 });
 
 gulp.task('default', ['clean'], function(cb) {
-  runSequence('sass', 'vulcanize', ['js', 'images', 'fonts', 'copy-assets', 'copy-backend'], cb);
+  runSequence('sass', 'vulcanize', ['js', 'images', 'fonts', 'copy-assets', 'generate-shed-config-dist', 'copy-backend'], cb);
 });
 
 gulp.task('serve:dist', ['default'], function(cb) {
@@ -353,3 +363,47 @@ function testBackend() {
 // Load custom tasks from the `tasks` directory
 try { require('require-dir')('tasks'); } catch (err) {}
 
+function generateShedConfig(baseDirectory) {
+  var shedConfigDirectory = baseDirectory + '/scripts/auto_generated/';
+
+  // TODO (jeffposnick): This list can definitely be pared down.
+  // TODO: Precache the experiment files as well (once they're added).
+  var filesToPrecache = gulp.src([
+    baseDirectory + '/**.html',
+    baseDirectory + '/fonts/**/*',
+    baseDirectory + '/styles/**.css',
+    baseDirectory + '/scripts/**.js',
+    baseDirectory + '/elements/**/*',
+    baseDirectory + '/bower_components/**/*.{js,html,css}',
+    baseDirectory + '/images/**/*.{svg,png,jpg,ico,gif}'
+  ], {read: false});
+
+  return gulp.src(shedConfigDirectory + 'shed-config-template.js')
+    .pipe(inject(filesToPrecache, {
+      starttag: 'filesToPrecache: [',
+      endtag: ']',
+      transform: function (filePath, file, i, length) {
+        // TODO (jeffposnick): There's probably a better way of modifying the path?
+        // Setting {base:} in the gulp.src() didn't seem to help, though.
+        var filePathRelativeToServerRoot = filePath.replace('/' + baseDirectory + '/', '');
+        return JSON.stringify(filePathRelativeToServerRoot) + (i + 1 < length ? ',' : '');
+      }
+    }))
+    // Run jshint on the generated file to double-check that we're writing out valid JS.
+    .pipe($.jshint())
+    .pipe($.jshint.reporter('fail'))
+    .pipe(rename(SHED_CONFIG_FILE))
+    .pipe(gulp.dest(shedConfigDirectory));
+}
+
+// There are a different set of files that need to be cached in the dev and dist environments,
+// so we can't just use the same shed configuration from dev to dist.
+// E.g., in the dist environment, we want to cache the vulcanized Polymer elements, not the
+// individual components.
+gulp.task('generate-shed-config-dev', function() {
+  return generateShedConfig(APP_DIR);
+});
+
+gulp.task('generate-shed-config-dist', function() {
+  return generateShedConfig(DIST_STATIC_DIR + '/' + APP_DIR);
+});
