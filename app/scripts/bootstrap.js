@@ -43,7 +43,7 @@ if ('serviceWorker' in navigator) {
           console.log("New Service Worker state: ", this.state);
       };
     };
-  }, function(err) {
-    console.error('Service worker registration failed:', err);
+  }).catch(function(error) {
+    IOWA.Analytics.trackError('navigator.serviceWorker.register() rejection', error);
   });
 }
