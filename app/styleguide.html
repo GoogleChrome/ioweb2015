@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Google I/O 2015 - Style Guide examples</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+<link rel="stylesheet" href="styles/main.css">
+<link rel="stylesheet" href="styles/main_sd.css" shim-shadowdom>
+
+<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+<link rel="import" href="elements/elements.html">
+
+<style>
+.auto-height {
+  height: auto;
+  min-height: initial;
+  max-height: initial;
+}
+.masthead {
+  margin: initial;
+  margin: 10px 0;
+}
+</style>
+</head>
+<body>
+
+<template is="auto-binding">
+
+<template id="navbartemplate">
+  <core-toolbar id="navbar" >
+    <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
+    <div flex class="io-logo"></div>
+    <paper-tabs class="white" link>
+      <paper-tab>
+        <a href="#about" layout horizontal center>
+          <i18n-msg msgid="about">About</i18n-msg>
+        </a>
+      </paper-tab>
+      <paper-tab>
+        <a href="#schedule" layout horizontal center>
+          <i18n-msg msgid="schedule">Schedule</i18n-msg>
+        </a>
+      </paper-tab>
+      <paper-tab>
+        <a href="#onsite" layout horizontal center>
+          <i18n-msg msgid="attend-onsite">Attend onsite</i18n-msg>
+        </a>
+      </paper-tab>
+      <paper-tab>
+        <a href="#offsite" layout horizontal center>
+          <i18n-msg msgid="attend-offsite">Attend off-site</i18n-msg>
+        </a>
+      </paper-tab>
+      <paper-tab>
+        <a href="#registration" layout horizontal center>
+          <i18n-msg msgid="registration">Registration</i18n-msg>
+        </a>
+      </paper-tab>
+    </paper-tabs>
+  </core-toolbar>
+</template>
+
+<section class="page__section">
+  <header class="masthead bg-medium-grey auto-height">
+    <template ref="navbartemplate" bind></template>
+  </header>
+  <header class="masthead bg-dark-grey auto-height">
+    <template ref="navbartemplate" bind></template>
+  </header>
+  <header class="masthead bg-cyan auto-height">
+    <template ref="navbartemplate" bind></template>
+  </header>
+</section>
+
+<section class="page__section bg-medium-grey">
+  <div class="card__container">
+    <div class="card">
+      <div class="card-content">
+        <h2>
+          Google I/O brings together best-in-class developers to meet on a global stage. Join us to explore emerging technology for mobile and beyond.
+        </h2>
+      </div>
+      <div class="card-content">
+        <a href="#">Learn more about I/O</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section  class="page__section">
+  <h3>Section title</h3>
+  <div class="card__container sidebyside" layout horizontal>
+    <div class="card" auto-vertical flex>
+      <div class="card-content">
+        <h3>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean suscipit magna et tincidunt aliquet.
+        </h3>
+      </div>
+      <div class="card-content">
+        <a href="#">Example link</a>
+      </div>
+    </div>
+    <div class="card" layout vertical auto-vertical flex>
+      <div flex class="card__photo card__photo--recap"></div>
+      <div class="card-content">
+        <a href="#">Example link</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page__section bg-cyan">
+  <div class="card__container sidebyside" layout horizontal>
+    <div class="card" auto-vertical flex>
+      <div class="card-content">
+        <h2 class="card__title">Card with title</h2>
+        <h3>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean suscipit magna et tincidunt aliquet.
+        </h3>
+      </div>
+      <div class="card-content">
+        <a href="#">Example link</a>
+      </div>
+    </div>
+    <div class="card" auto-vertical layout vertical flex>
+      <div flex class="card__photo card__photo--recap"></div>
+      <div class="card-content">
+        <a href="#">Example link</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</template>
+
+</body>
+</html>

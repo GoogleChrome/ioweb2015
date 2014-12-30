@@ -1,0 +1,68 @@
+application: io-webapp-staging
+version: 1
+
+runtime: go
+api_version: go1
+threadsafe: yes
+
+#default_expiration: "0s"
+
+handlers:
+
+- url: /fonts
+  static_dir: app/fonts
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /images
+  static_dir: app/images
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /styles
+  static_dir: app/styles
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /scripts
+  static_dir: app/scripts
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /temporary_api
+  static_dir: app/temporary_api
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /(.+\.html)$
+  static_files: app/\1
+  upload: app/.+\.html$
+  # need access to app/templates
+  application_readable: true
+  http_headers:
+    access-control-allow-origin: "*"
+
+# all other static assets in app/ root dir,
+# including service worker
+- url: /(.+\.(json|ico|txt|js))$
+  static_files: app/\1
+  upload: app/(.+\.(json|ico|txt|js))$
+  http_headers:
+    access-control-allow-origin: "*"
+
+# development-only
+- url: /bower_components
+  static_dir: app/bower_components
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+- url: /elements
+  static_dir: app/elements
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
+# All other requests are routed to the backend
+- url: /.*
+  script: _go_app
+  secure: always
+

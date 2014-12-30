@@ -10,6 +10,9 @@ dist
 .sass-cache
 app/styles/**/*.css
 
+# Standalone backend server
+backend/bin
+
 # Other generated/common stuff.
 .tmp
 .DS_Store

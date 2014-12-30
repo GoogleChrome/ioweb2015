@@ -2,10 +2,13 @@
 
 'use strict';
 
+var fs = require('fs');
+var path = require('path');
+var spawn = require('child_process').spawn;
+
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var pagespeed = require('psi');
-var path = require('path');
 var del = require('del');
 var i18n_replace = require('./gulp_scripts/i18n_replace');
 var runSequence = require('run-sequence');
@@ -18,6 +21,7 @@ var inject = require('gulp-inject');
 var rename = require('gulp-rename');
 
 var APP_DIR = 'app';
+var BACKEND_DIR = 'backend';
 
 var STATIC_VERSION = 1; // Cache busting static assets.
 var VERSION = argv.build || STATIC_VERSION;
@@ -45,9 +49,7 @@ gulp.task('clean', function(cleanCallback) {
 });
 
 gulp.task('sass', function() {
-  return gulp.src([
-      APP_DIR + '/{styles,elements}/**/*.scss'
-    ])
+  return gulp.src([APP_DIR + '/{styles,elements}/**/*.scss'])
     .pipe($.sass({outputStyle: 'compressed'}))
     .pipe($.changed(APP_DIR + '/{styles,elements}', {extension: '.scss'}))
     .pipe($.autoprefixer([
@@ -140,10 +142,10 @@ gulp.task('vulcanize-elements', ['clean', 'sass'], function() {
 gulp.task('copy-assets', ['copy-bower-dependencies'], function() {
   return gulp.src([
     APP_DIR + '/*.{html,txt,ico}',
-    APP_DIR + '/app.yaml',
     APP_DIR + '/manifest.json',
     APP_DIR + '/styles/**.css',
     APP_DIR + '/elements/**/images/*',
+    APP_DIR + '/templates/*.html',
     // The service worker script needs to be at the top-level of the site.
     APP_DIR + '/sw.js'
   ], {base: './'})
@@ -166,6 +168,19 @@ gulp.task('copy-bower-dependencies', function() {
 
   return gulp.src(directoryPaths, {base: './'})
     .pipe(gulp.dest(DIST_STATIC_DIR));
+});
+
+// Copy backend files.
+gulp.task('copy-backend', function(cb) {
+  gulp.src([
+    BACKEND_DIR + '/**/*.go',
+    BACKEND_DIR + '/app.yaml',
+  ], {base: './'})
+  .pipe(gulp.dest(DIST_STATIC_DIR))
+  .on('end', function() {
+    var destLink = [DIST_STATIC_DIR, BACKEND_DIR, APP_DIR].join('/');
+    fs.symlink('../' + APP_DIR, destLink, cb);
+  });
 });
 
 // Lint JavaScript
@@ -236,26 +251,76 @@ gulp.task('serve', ['sass'], function() {
     server: [APP_DIR]
   });
 
-  gulp.watch([APP_DIR + '/**/*.html'], reload);
-  gulp.watch([APP_DIR + '/styles/**/*.{scss,css}'], ['styles', reload]);
-  gulp.watch([APP_DIR + '/scripts/**/*.js'], ['jshint']);
-  gulp.watch([APP_DIR + '/images/**/*'], reload);
-  gulp.watch([APP_DIR + '/bower.json'], ['bower']);
+  watch();
+});
+
+// Start GAE-based server, serving both front-end and backend.
+gulp.task('serve:gae', ['sass'], function() {
+  var args = ['preview', 'app', 'run', BACKEND_DIR];
+  var backend = spawn('gcloud', args, {stdio: 'inherit'});
+  browserSync.emitter.on('service:exit', backend.kill.bind(backend, 'SIGTERM'));
+
+  // give GAE serve some time to start
+  var bs = browserSync.bind(null, {notify: false, proxy: '127.0.0.1:8080'});
+  setTimeout(bs, 2000);
+
+  watch();
+});
+
+// Start standalone server (no GAE SDK needed), serving both front-end and backend.
+gulp.task('serve:backend', ['sass', 'backend'], function() {
+  var backend;
+  var run = function() {
+    backend = spawn(BACKEND_DIR + '/bin/server', ['-d', APP_DIR], {stdio: 'inherit'});
+    backend.on('close', run);
+  };
+  var restart = function() {
+    console.log('Restarting backend');
+    backend.kill();
+  };
+
+  browserSync.emitter.on('service:exit', function() {
+    backend.kill('SIGKILL');
+  });
+
+  run();
+  browserSync({notify: false, proxy: '127.0.0.1:8080'});
+
+  watch();
+  gulp.watch([BACKEND_DIR + '/**/*.go'], function() {
+    console.log('Building backend');
+    buildBackend(restart);
+  });
 });
 
 gulp.task('vulcanize', ['vulcanize-elements']);
 
 gulp.task('js', ['jshint', 'jscs', 'uglify']);
 
+// Build self-sufficient backend server binary w/o GAE support.
+gulp.task('backend', buildBackend);
+
+// Backend TDD: watch for changes and run tests in an infinite loop.
+gulp.task('backend:test', function(cb) {
+  var watchOpt = process.argv.indexOf('--watch') >= 0;
+  var t = testBackend();
+  if (watchOpt) {
+    gulp.watch([BACKEND_DIR + '/**/*.go'], testBackend);
+    gulp.watch([APP_DIR + '/templates/*'], testBackend);
+    cb();
+  } else {
+    t.on('close', cb);
+  }
+});
+
 gulp.task('default', ['clean'], function(cb) {
-  runSequence(
-    'sass',
-    'vulcanize',
-    ['js', 'images', 'fonts'],
-    'copy-assets',
-    'generate-shed-config-dist',
-    cb
-  );
+  runSequence('sass', 'vulcanize', ['js', 'images', 'fonts', 'copy-assets', 'generate-shed-config-dist', 'copy-backend'], cb);
+});
+
+gulp.task('serve:dist', ['default'], function(cb) {
+  var args = ['preview', 'app', 'run', DIST_STATIC_DIR + '/' + BACKEND_DIR];
+  var proc = spawn('gcloud', args, {stdio: 'inherit'});
+  proc.on('close', cb);
 });
 
 gulp.task('bower', function() {
@@ -271,6 +336,29 @@ gulp.task('addgithooks', function() {
 gulp.task('setup', function(cb) {
   runSequence('bower', 'addgithooks', 'default', cb);
 });
+
+// Watch file changes and reload running server
+// or rebuid stuff.
+function watch() {
+  gulp.watch([APP_DIR + '/**/*.html'], reload);
+  gulp.watch([APP_DIR + '/styles/**/*.{scss,css}'], ['sass', reload]);
+  gulp.watch([APP_DIR + '/scripts/**/*.js'], ['jshint']);
+  gulp.watch([APP_DIR + '/images/**/*'], reload);
+  gulp.watch([APP_DIR + '/bower.json'], ['bower']);
+}
+
+// Build standalone backend server
+function buildBackend(cb) {
+  var args = ['build', '-o', 'bin/server'];
+  var build = spawn('go', args, {cwd: BACKEND_DIR, stdio: 'inherit'});
+  build.on('close', cb);
+}
+
+// Run backend tests
+function testBackend() {
+  var args = ['test', '-v'];
+  return spawn('go', args, {cwd: BACKEND_DIR, stdio: 'inherit'});
+}
 
 // Load custom tasks from the `tasks` directory
 try { require('require-dir')('tasks'); } catch (err) {}

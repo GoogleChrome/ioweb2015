@@ -1,0 +1,91 @@
+{
+  "home": {
+    "description": "Top navbar single-word link text. Please keep this short. Links back to the site's main page.",
+    "message": "Home"
+  },
+  "about": {
+    "description": "Top navbar single-word link text. Please keep this short. Links to the site's About page. Page supplies more info about the event.",
+    "message": "About"
+  },
+  "schedule": {
+    "description": "Top navbar single-word link text. Please keep this short. Links to the event schedule page.",
+    "message": "Schedule"
+  },
+  "attend-onsite": {
+    "description": "Top navbar sink text. Please keep this short. Links to the site's page for attendees.",
+    "message": "Attend onsite"
+  },
+  "attend-offsite": {
+    "description": "Top navbar sink text. Please keep this short. Links to the site's page for offsite participants.",
+    "message": "Attend off-site"
+  },
+  "registration": {
+    "description": "Top navbar sink text. Please keep this short. Links to the site's registration page.",
+    "message": "Registration"
+  },
+  "sanfrancisco": {
+    "description": "The city of San Francisco, California",
+    "message": "San Francisco"
+  },
+  "iodate": {
+    "description": "The data of Google I/O",
+    "message": "Smarch xx - xx"
+  },
+  "learnmore": {
+    "description": "Link text. Links to a page with the event's details.",
+    "message": "Learn more about I/O"
+  },
+  "setreminder": {
+    "description": "Link text. Allows users to receive a notification as a reminder.",
+    "message": "Set a Reminder"
+  },
+  "registration-opens": {
+    "description": "Subheader of the registration section",
+    "message": "Registration opens"
+  },
+  "registration-opens": {
+    "description": "Link text. Please keep this short. Links to the event schedule page.",
+    "message": "Check the agenda"
+  },
+  "watch-recap-video": {
+    "description": "Link text. Please keep this short. Watches the video from the 2014 event.",
+    "message": "Watch the 2014 Recap Video"
+  },
+  "join-from-offsite": {
+    "description": "Link text. Please keep this short. Links to the page for offsite participants.",
+    "message": "Join from your location"
+  },
+  "join-convo": {
+    "description": "Section heading for the social section on the homepage.",
+    "message": "Join the conversation now at #io15"
+  },
+  "back-to-top": {
+    "description": "Link text. Please keep short. Link takes users back to the top of the page.",
+    "message": "Back to the top"
+  },
+  "io-community": {
+    "description": "Link text. Please keep short. Links to the community page.",
+    "message": "I/O Community"
+  },
+  "faq": {
+    "description": "Link text. Please keep short. Links to the site's FAQ page.",
+    "message": "FAQ"
+  },
+  "google-developers": {
+    "message": "Google Developers"
+  },
+  "privacy": {
+    "message": "Privacy"
+  },
+  "terms": {
+    "message": "Terms"
+  },
+  "headphones-on": {
+    "description": "Hint to the user to put their headphones on.",
+    "message": "Headphones on"
+  },
+  "experiment-ahead": {
+    "description": "The experiment's loading message explaining it will use a particular API.",
+    "message": "Web Audio API experiment ahead"
+  }
+}
