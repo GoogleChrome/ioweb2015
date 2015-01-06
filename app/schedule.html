@@ -117,7 +117,7 @@ limitations under the License.
     <core-media-query query="(min-width:769px) and (max-width:944px)" queryMatches="{{isTabletSize}}"></core-media-query>
     <core-media-query query="(min-width:945px)" queryMatches="{{isDesktopSize}}"></core-media-query>
 
-    <header class="masthead bg-cyan" layout vertical>
+    <header class="masthead {{pages[selectedPage].mastheadBgClass}}" layout vertical>
       <core-toolbar id="navbar" class="{{ {'core-narrow': isPhoneSize} | tokenList }}">
         <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
         <div flex><a href="./"><div class="io-logo"></div></a></div>
@@ -150,99 +150,17 @@ limitations under the License.
         </paper-tabs>
       </core-toolbar>
       <div class="masthead-container" flex end?="{{!isPhoneSize}}" layout vertical?="{{isPhoneSize}}" horizontal?="{{isDesktopSize || isTabletSize}}">
-        <div layout vertical end-justified?="{{isPhoneSize}}" flex>
-          <h1>Schedule</h1>
-          <paper-tabs class="white" selected="0">
-            <paper-tab><i18n-msg msgid="agenda">Agenda</i18n-msg></paper-tab>
-            <paper-tab disabled><i18n-msg msgid="day">Day</i18n-msg> 1</paper-tab>
-            <paper-tab disabled><i18n-msg msgid="day">Day</i18n-msg> 2</paper-tab>
-          </paper-tabs>
+        <div class="masthead-meta" layout vertical end-justified?="{{isPhoneSize}}" flex>
+
+          <div id="masthead-title-container"></div>
+
         </div>
       </div>
       <paper-fab icon="add" mini?="{{isPhoneSize}}"></paper-fab>
     </header>
 
     <main>
-
-      <section class="page__section">
-        <div class="card__container">
-          <div class="card">
-            <div class="card-content">
-              <h2>Smarch xx, 2015</h2>
-            </div>
-            <div class="card-content">
-              <div layout horizontal>
-                <core-icon icon="schedule"></core-icon>
-                <div class="schedule-rows">
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>4:00 PM - 6:00 PM</span>
-                    <span auto-vertical flex>Badge pick-up</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="page__section">
-        <div class="card__container">
-          <div class="card">
-            <div class="card-content">
-              <h2>Smarch xx, 2015</h2>
-            </div>
-            <div class="card-content">
-              <div layout horizontal>
-                <core-icon icon="schedule"></core-icon>
-                <div class="schedule-rows">
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>8:00 AM - 10:00 AM</span>
-                    <span auto-vertical flex>Breakfast</span>
-                  </div>
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>9:00 AM - 11:30 AM</span>
-                    <span auto-vertical flex>Keynote</span>
-                  </div>
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>11:30 AM - 1:30 PM</span>
-                    <span auto-vertical flex>Lunch</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="page__section">
-        <div class="card__container">
-          <div class="card">
-            <div class="card-content">
-              <h2>Smarch xx, 2015</h2>
-            </div>
-            <div class="card-content">
-              <div layout horizontal>
-                <core-icon icon="schedule"></core-icon>
-                <div class="schedule-rows">
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>8:00 AM - 10:00 AM</span>
-                    <span auto-vertical flex>Breakfast</span>
-                  </div>
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>9:00 AM - 11:30 AM</span>
-                    <span auto-vertical flex>Sessions</span>
-                  </div>
-                  <div layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
-                    <span class="schedule-time" auto-vertical flex>9:00 AM - 5:00 PM</span>
-                    <span auto-vertical flex>Codelabs</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <template id="template-content-container" ref="" bind></template>
     </main>
 
     <footer layout horizontal>

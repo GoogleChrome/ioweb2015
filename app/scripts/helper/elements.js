@@ -20,10 +20,15 @@ IOWA.Elements = (function() {
 
   var toast = document.getElementById('toast');
 
+  var template = document.getElementById('t');
+  template.pages = {};
+  template.selectedPage = 'home';
+
   // TODO: Add element's configuration and listeners here.
 
   return {
-    Toast: toast
+    Toast: toast,
+    Template: template
   };
 
 })();

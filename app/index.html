@@ -146,7 +146,7 @@ limitations under the License.
       <core-media-query query="(min-width:769px) and (max-width:944px)" queryMatches="{{isTabletSize}}"></core-media-query>
       <core-media-query query="(min-width:945px)" queryMatches="{{isDesktopSize}}"></core-media-query>
 
-      <header class="masthead bg-medium-grey" layout vertical>
+      <header class="masthead {{pages[selectedPage].mastheadBgClass}}" layout vertical>
         <core-toolbar id="navbar" class="{{ {'core-narrow': isPhoneSize} | tokenList }}">
           <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
           <div flex><a href="./"><div class="io-logo"></div></a></div>
@@ -180,122 +180,16 @@ limitations under the License.
         </core-toolbar>
         <div class="masthead-container" flex end?="{{!isPhoneSize}}" layout vertical?="{{isPhoneSize}}" horizontal?="{{isDesktopSize || isTabletSize}}">
           <div class="masthead-meta" layout vertical end-justified?="{{isPhoneSize}}" flex>
-            <h2 class="masthead-title">Smarch xx - xx</h2>
-            <h5 class="masthead-subtitle">Moscone Center West,<br>San Francisco</h5>
+
+            <div id="masthead-title-container"></div>
+
           </div>
         </div>
         <paper-fab icon="assessment" mini?="{{isPhoneSize}}"></paper-fab>
       </header>
 
       <main>
-
-        <div class="card__container">
-          <div class="card">
-            <div class="card-content">
-              <h2>Google I/O brings together best-in-class developers to meet on a global stage. Join us to explore emerging technology for mobile and beyond.</h2>
-            </div>
-            <div class="card-content">
-              <a href="#">Learn more about I/O</a>
-            </div>
-          </div>
-        </div>
-
-        <section class="home-photo page__section"></section>
-
-        <section id="registration" class="page__section bg-cyan">
-          <h3>Registration opens<br>Smarch 1 at 9AM PST</h3>
-          <paper-button class="registration__setreminder" hidden?="{{isPhoneSize}}">
-            <core-icon icon="social:notifications-none"></core-icon> Set a Reminder
-          </paper-button>
-          <div class="io-countdown" layout vertical center>
-            <countdown-timer autostart
-                             date="Mon, 02 Mar 2015 09:00:00 GMT-0700"
-                             dateadjustment="5" easeintime="500" waittime="300"
-                             easeouttime="400"></countdown-timer>
-            <h4>Days</h4>
-          </div>
-        </section>
-
-        <div class="registration__card card__container sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
-          <template if="{{isPhoneSize}}">
-            <div class="card" auto-vertical flex>
-              <div class="card-content">
-                <a href="#"><core-icon icon="social:notifications-none"></core-icon> Set a Reminder</a>
-              </div>
-            </div>
-          </template>
-          <div class="card" auto-vertical flex>
-            <div class="card-content hide-on-mobile">
-              <h3>I/O is two days of hands-on interaction with the latest technologies, inspirational talks and a few surprises in between</h3>
-            </div>
-            <div class="card-content">
-              <a href="#"><core-icon icon="event"></core-icon> Check the agenda</a>
-            </div>
-          </div>
-          <div class="card" layout vertical auto-vertical flex>
-            <div flex class="card__photo card__photo--recap hide-on-mobile"></div>
-            <div class="card-content">
-              <a href="#"><core-icon icon="av:play-circle-fill"></core-icon> Watch the 2014 Recap Video</a>
-            </div>
-          </div>
-        </div>
-
-        <section id="attend" class="page__section bg-dark-grey">
-          <h3>Attend I/O from <div class="attend__cityname">Mumbai</div> or wherever you may be</h3>
-          <div class="attend__globe">
-
-          </div>
-        </section>
-
-        <div class="card__container">
-          <div class="card">
-            <div class="card-content">
-              <h2>If you aren't able to join us for I/O in person this year, you can still make an event out of it. Watch the live stream with other developers near you.</h2>
-            </div>
-            <div class="card-content">
-              <a href="#">Join from your location</a>
-            </div>
-          </div>
-        </div>
-
-        <section id="join" class="page__section bg-light-grey">
-          <h3>Join the conversation<br>now at #io15</h3>
-          <div class="join__social" layout vertical end hidden?="{{isPhoneSize}}">
-            <a href="https://plus.google.com/+GoogleDevelopers">
-              +googledevelopers<core-icon icon="social:post-gplus"></core-icon>
-            </a>
-            <a href="https://twitter.com/googledevs">
-              @googledevs<core-icon icon="social:post-twitter"></core-icon>
-            </a>
-          </div>
-          <div class="io__hash">
-            TODO
-          </div>
-          <div class="sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
-            <div class="social-post">
-              <header>
-                <a href="https://twitter.com/googledevs">@googledevs</a>
-                <div>3hrs ago</div>
-              </header>
-              <div>Find relief for your bloated game woes in the recent Game On! DevByte on WebP from @duhroach http://goo.gl/0Paa9V</div>
-            </div>
-            <div class="social-post">
-              <header>
-                <a href="https://twitter.com/googledevs">@googledevs</a>
-                <div>3hrs ago</div>
-              </header>
-              <div>Find relief for your bloated game woes in the recent Game On! DevByte on WebP from @duhroach http://goo.gl/0Paa9V</div>
-            </div>
-            <div class="social-post">
-              <header>
-                <a href="https://twitter.com/googledevs">@googledevs</a>
-                <div>3hrs ago</div>
-              </header>
-              <div>Find relief for your bloated game woes in the recent Game On! DevByte on WebP from @duhroach http://goo.gl/0Paa9V</div>
-            </div>
-          </div>
-        </section>
-
+        <template id="template-content-container" ref="" bind></template>
       </main>
 
       <footer layout horizontal>

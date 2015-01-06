@@ -37,4 +37,84 @@
     }
   };
 
+  function injectPage(url) {
+    var parts = url.split('/');
+    var pageName = parts[parts.length - 1].split('.html')[0] || 'home';
+
+    var importURL = 'templates/' + pageName + '_partial.html';
+
+    Polymer.import([importURL], function() {
+      // Don't proceed if import didn't load correctly.
+      var htmlImport = document.querySelector(
+          'link[rel="import"][href="' + importURL + '"]');
+      if (htmlImport && !htmlImport.import) {
+        return;
+      }
+
+      // Note: this element cannot be in elements.js. The auto-binding template
+      // may not have been stamped yet.
+      var templateToReplace = document.getElementById('template-content-container');
+
+      var newTemplateId = 'template-' + pageName;
+
+      // Use the new template from the injected page.
+      templateToReplace.setAttribute('ref', newTemplateId);
+
+      // If template is newly fetched, add it to the DOM for re-use later.
+      var newTemplate = document.getElementById(newTemplateId);
+      if (!newTemplate) {
+        var importContent = htmlImport.import;
+        newTemplate = importContent.getElementById(newTemplateId);
+        document.body.appendChild(newTemplate);
+      }
+
+      // Update sections of the page.
+      document.body.id = 'page-' + pageName;
+      IOWA.Elements.Template.selectedPage = pageName;
+
+      var mastheadTitle = IOWA.Elements.Template.pages[pageName].mastheadHTML;
+      // Note: this element cannot be in elements.js. The auto-binding template
+      // may not have been stamped yet.
+      var titleContainer = document.getElementById('masthead-title-container');
+      IOWA.Elements.Template.injectBoundHTML(mastheadTitle, titleContainer);
+
+      // update meta data
+      // update title
+      // update nav selections
+
+      // Update URL.
+      history.pushState({}, null, url);
+    });
+  }
+
+  // TODO: do this off routing change instead of link clicks.
+  document.addEventListener('click', function(e) {
+    // Inject page if <a> was in the event path and matches ajax criteria:
+    // - is a different page.
+    // - was relative link and not javascript:
+    // - not a #hash link within the same page
+    // - is not going to a non-ajaxable page (index.html, apps, components, etc.)
+    // - was not targeted at a new window
+    for (var i = 0; i < e.path.length; ++i) {
+      var el = e.path[i];
+      if (el.localName == 'a') {
+        if (!el.getAttribute('href').match(/^(https?:|javascript:|\/\/)/) &&
+            location.origin == el.origin &&
+            !(el.hash && (el.pathname == location.pathname)) &&
+             el.target == '') {
+          e.preventDefault();
+          e.stopPropagation();
+
+          injectPage(el.href);
+        }
+
+        return; // found first anchor, quit here.
+      }
+    }
+  });
+
+  document.addEventListener('template-bound', function() {
+    injectPage(location.href);
+  });
+
 })(window);

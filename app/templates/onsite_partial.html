@@ -1,0 +1,86 @@
+<template id="template-masthead">
+  <h1>Attend Onsite</h1>
+</template>
+
+<template id="template-onsite">
+  <div class="card__container">
+    <div class="card">
+      <div class="card-content">
+        <h2>Google I/O is Innovation in the Open. Connect face-to-face with developers and designers from around the world, check the latest product releases first hand, and chat directly with Googlers.</h2>
+      </div>
+    </div>
+  </div>
+
+  <section class="page__section onsite__pic"></section>
+
+  <section id="traveldetails" class="page__section bg-light-grey">
+    <h3>Travel details</h3>
+    <div class="sidebyside" layout horizontal wrap>
+      <div flex?="{{!isPhoneSize}}">
+        <h4><core-icon icon="maps:directions"></core-icon> Getting to San Francisco</h4>
+        <p>Here are the three major airports in the Bay Area with international airline service. SFO is about 13 miles south of downtown; OAK is 5 miles south of downtown; and SJC is in the city of San Jose about 45 miles southwest of downtown San Francisco.</p>
+        <ul>
+          <li><a href="http://www.flysfo.com/to-from/ground-transportation">San Francisco International Airport (SFO)</a><br>
+          14 miles, 25-40 minute drive</li>
+          <li><a href="http://www.oaklandairport.com/ground_transportation.shtml">Oakland International Airport (OAK)</a><br>
+          19 miles, 25-40 minute drive</li>
+          <li><a href="http://www.flysanjose.com/fl/travelers.php?page=ground_trans/gt_overview&exp=3">San Jose International Airport (SJC)</a><br>
+          47 miles, 60-75 minute drive</li>
+        </ul>
+        <h5>From the Airport</h5>
+        <p>Super Shuttle International is offering a discount to all Google I/O attendees. Reservations must be booked in advance either <a href="https://www.supershuttle.com/default.aspx?GC=G66Z7">online</a> or by calling 1-800-BLUE-VAN (1-800-258-3826). The discount code for Google I/O is G66Z7.</p>
+      </div>
+      <div flex?="{{!isPhoneSize}}">
+        <h4><core-icon icon="maps:hotel"></core-icon> Hotels</h4>
+        <p>We have room blocks at the following hotels:</p>
+        <ul>
+          <li><a href="https://www.intercontinental.com/redirect?path=hd&brandCode=ic&localeCode=en&regionCode=925&hotelCode=sfohb&_PMID=99801505&GPC=GO4">InterContinental</a><br>
+          Group Code: 1406GOOGLE
+          </li>
+          <li><a href="https://parc55hotel.reztrip.com/special_offer?rate_code=GOIO&offer_code=GOIO&vr=3">Parc 55 Wyndham San Francisco</a><br>
+          Group Code: 1406GOOGLE
+          </li>
+          <li><a href="https://www.jdvhotels.com/hotels/california/san-francisco-hotels/hotel-rex">The Hotel Rex</a><br>
+          Group Code: 1406GOOGLE
+          </li>
+          <li><a href="https://www.marriott.com/meeting-event-hotels/group-corporate-travel/groupCorp.mi?resLinkData=Google%20Developers%20Conference%5Esfoak%60giogioa%7Cgiogiob%60259%60USD%60false%606/24/14%606/26/14%606/4/14&app=resvlink&stop_mobi=yes">Hotel Adagio</a><br>
+          Group Code: 1406GOOGLE
+          </li>
+          <li><a href="https://www.holidayinn.com/redirect?path=hd&brandCode=hi&localeCode=en&regionCode=%20%201&hotelCode=SFOCC&_PMID=99801505&GPC=GLE">Holiday Inn Civic Center</a><br>
+          Group Code: GLE or Google I/O 2014
+          </li>
+          <li><a href="https://www.marriott.com/meeting-event-hotels/group-corporate-travel/groupCorp.mi?resLinkData=GOOGLE%20I/O%20DEVELOPER%20CONF%202014%5ESFODT%60GIOGIOA%7CGIOGIOB%7CGIOGIOC%60299.00-339.00%60USD%60false%606/23/14%606/26/14%606/2/14&app=resvlink&stop_mobi=yes">Marriott Marquis San Francisco</a><br>
+          Group Code: GIOGIOA (Single/Dbl), GIOGIOB (Triple), GIOGIOC (Quad)
+          </li>
+          <li><a href="https://www.marriott.com/meeting-event-hotels/group-corporate-travel/groupCorp.mi?resLinkData=GOOGLE%20I/O%20DEVELOPER%20CONF%202014%5ESFODT%60GIOGIOA%7CGIOGIOB%7CGIOGIOC%60299.00-339.00%60USD%60false%606/23/14%606/26/14%606/2/14&app=resvlink&stop_mobi=yes">Westin Market Street</a><br>
+          Group Code: 1406GOOGLE
+          </li>
+          <li><a href="https://gc.synxis.com/rez.aspx?Hotel=26753&Chain=10179&arrive=06/23/2014&depart=6/27/2014&adult=1&child=0&group=12340802075">Palomar San Francisco</a><br>
+          Group Code: GOIO
+          </li>
+        </ul>
+      </div>
+      <div flex?="{{!isPhoneSize}}">
+        <h4><core-icon icon="maps:place"></core-icon> Moscone Center West</h4>
+        <p>The <a href="https://www.moscone.com/directions/index.shtml">Moscone Center</a> is located at the corner of Fourth &amp; Howard streets, at 800 Howard St. San Francisco, CA 94103</p>
+        <p>Public transportation to the Moscone Center is accessible via:</p>
+        <ul>
+          <li><a href="https://www.bart.gov/">BART</a><br>
+          Subway linking San Francisco to Oakland and Berkeley</li>
+          <li><a href="https://www.sfmta.com/">MUNI Metro</a><br>
+          Citywide buses, trollies and cable cars</li>
+          <li><a href="http://www.caltrain.com/">Caltrain</a><br>
+          Regional rail system</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script>
+IOWA.Elements.Template.pages['onsite'] = {
+  title: 'Attend Onsite',
+  mastheadBgClass: 'bg-dark-grey',
+  mastheadHTML: document._currentScript.ownerDocument.getElementById('template-masthead').innerHTML
+};
+</script>

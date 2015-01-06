@@ -1,0 +1,55 @@
+<template id="template-masthead">
+  <h1>About</h1>
+</template>
+
+<template id="template-about">
+  <div class="card__container">
+    <div class="card">
+      <div class="card-content">
+        <h2>Google I/O is an annual developer conference to learn, share and get inspired about the latest and greatest in tech.</h2>
+      </div>
+      <div class="card-content">
+        <a href="#">I/O in Photos</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="page__section pics__section" layout horizontal>
+    <div class="photo__about" flex two></div>
+    <div layout vertical flex>
+      <div class="photo__about" layout vertical flex></div>
+      <div class="photo__about" layout vertical flex></div>
+    </div>
+  </section>
+
+  <div class="card__container sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
+    <div class="card" auto-vertical flex>
+      <div class="card-content">
+        <h3>Join us to learn about product and platform innovations at Google, starting with a live kickoff from our Senior Vice-President for Android, Chrome &amp; App, Sundar Pichai.</h3>
+      </div>
+      <div class="card-content">
+        <a href="#">See the 2014 Keynote and sessions</a>
+      </div>
+    </div>
+    <div class="card" layout vertical auto-vertical flex>
+      <div flex class="card__photo card__photo--recap"></div>
+      <div class="card-content">
+        <a href="#"><core-icon icon="av:play-circle-fill"></core-icon> Watch the 2014 Recap Video</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="hashtag" class="page__section bg-cyan">
+    <div class="io__hash">
+      TODO
+    </div>
+  </section>
+</template>
+
+<script>
+IOWA.Elements.Template.pages['about'] = {
+  title: 'About I/O',
+  mastheadBgClass: 'bg-dark-grey',
+  mastheadHTML: document._currentScript.ownerDocument.getElementById('template-masthead').innerHTML
+};
+</script>

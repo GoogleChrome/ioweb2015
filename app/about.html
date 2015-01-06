@@ -117,7 +117,7 @@ limitations under the License.
     <core-media-query query="(min-width:769px) and (max-width:944px)" queryMatches="{{isTabletSize}}"></core-media-query>
     <core-media-query query="(min-width:945px)" queryMatches="{{isDesktopSize}}"></core-media-query>
 
-    <header class="masthead bg-dark-grey" layout vertical>
+    <header class="masthead {{pages[selectedPage].mastheadBgClass}}" layout vertical>
       <core-toolbar id="navbar" class="{{ {'core-narrow': isPhoneSize} | tokenList }}">
         <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
         <div flex><a href="./"><div class="io-logo"></div></a></div>
@@ -150,57 +150,17 @@ limitations under the License.
         </paper-tabs>
       </core-toolbar>
       <div class="masthead-container" flex end?="{{!isPhoneSize}}" layout vertical?="{{isPhoneSize}}" horizontal?="{{isDesktopSize || isTabletSize}}">
-        <div layout vertical end-justified?="{{isPhoneSize}}" flex>
-          <h1>About I/O</h1>
+        <div class="masthead-meta" layout vertical end-justified?="{{isPhoneSize}}" flex>
+
+          <div id="masthead-title-container"></div>
+
         </div>
       </div>
       <paper-fab icon="assessment" mini?="{{isPhoneSize}}"></paper-fab>
     </header>
 
     <main>
-
-      <div class="card__container">
-        <div class="card">
-          <div class="card-content">
-            <h2>Google I/O is an annual developer conference to learn, share and get inspired about the latest and greatest in tech.</h2>
-          </div>
-          <div class="card-content">
-            <a href="#">I/O in Photos</a>
-          </div>
-        </div>
-      </div>
-
-      <section class="page__section pics__section" layout horizontal>
-        <div class="photo__about" flex two></div>
-        <div layout vertical flex>
-          <div class="photo__about" layout vertical flex></div>
-          <div class="photo__about" layout vertical flex></div>
-        </div>
-      </section>
-
-      <div class="card__container sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
-        <div class="card" auto-vertical flex>
-          <div class="card-content">
-            <h3>Join us to learn about product and platform innovations at Google, starting with a live kickoff from our Senior Vice-President for Android, Chrome &amp; App, Sundar Pichai.</h3>
-          </div>
-          <div class="card-content">
-            <a href="#">See the 2014 Keynote and sessions</a>
-          </div>
-        </div>
-        <div class="card" layout vertical auto-vertical flex>
-          <div flex class="card__photo card__photo--recap"></div>
-          <div class="card-content">
-            <a href="#"><core-icon icon="av:play-circle-fill"></core-icon> Watch the 2014 Recap Video</a>
-          </div>
-        </div>
-      </div>
-
-      <section id="hashtag" class="page__section bg-cyan">
-        <div class="io__hash">
-          TODO
-        </div>
-      </section>
-
+      <template id="template-content-container" ref="" bind></template>
     </main>
 
     <footer layout horizontal>
