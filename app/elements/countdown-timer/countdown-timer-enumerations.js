@@ -19,3 +19,8 @@ IOWA.CountdownTimer.Animation = {
   In: 1,
   Out: 2
 };
+
+IOWA.CountdownTimer.Modes = {
+  Days: 1,
+  HoursMinutesSeconds: 2
+};

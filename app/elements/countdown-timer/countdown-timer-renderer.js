@@ -16,7 +16,7 @@ IOWA.CountdownTimer.NumberRenderer = function(el) {
 
 IOWA.CountdownTimer.NumberRenderer.prototype = {
 
-  baseNumberWidth_: 120,
+  baseNumberWidth_: 136,
   baseNumberHeight_: 140,
   measurements_: [140, 68, 97, 87, 100, 111, 116, 109, 108, 118],
 
@@ -141,7 +141,7 @@ IOWA.CountdownTimer.NumberRenderer.prototype = {
 
     // This is a tweak for the number zero just because
     // it's way bigger than the other numbers.
-    this.ctx_.translate(-12, 0);
+    this.ctx_.translate(-6, 0);
 
     function in_() {
 
