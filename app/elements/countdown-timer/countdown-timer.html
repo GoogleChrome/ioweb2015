@@ -176,6 +176,8 @@ Creates a countdown timer to a specific date.
         // timer will get reconfigured.
         this.timer = new IOWA.CountdownTimer.Element(this.$.surface);
         this.configureTimer_();
+        this.timer.setOnTimerThresholdReachedCallback(
+          this.onTimerThresholdReached_.bind(this));
 
         if (!this.autoStart) {
           this.timer.drawIfAnimationIsNotRunning();
@@ -183,6 +185,17 @@ Creates a countdown timer to a specific date.
         }
 
         this.start();
+      },
+
+      /**
+       * Fires an event from the countdown timer that it has now reached a
+       * threshold, e.g. changed from hours to minutes, or the timer
+       *
+       * @param {Object} passes the label and the milliseconds remaining.
+       * @private
+       */
+      onTimerThresholdReached_: function(thresholdInformation) {
+        this.fire('timerthreshold', thresholdInformation);
       },
 
       /**
@@ -199,6 +212,8 @@ Creates a countdown timer to a specific date.
           targetDate = Date.now();
 
         targetDate = new Date(targetDate);
+
+        targetDate = new Date(Date.now() + 68000);
 
         this.timer.configure({
           targetDate: targetDate,

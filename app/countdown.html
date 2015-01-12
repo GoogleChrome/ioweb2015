@@ -40,6 +40,15 @@
         easeouttime="390"></countdown-timer>
     </div>
 
+    <script>
+
+    document.querySelector('countdown-timer').addEventListener(
+      'timerthreshold', function(obj) {
+        console.log(obj.detail.label, obj.detail.millisecondsToTarget);
+      });
+
+    </script>
+
   </body>
 
 </html>

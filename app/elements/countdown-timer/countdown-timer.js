@@ -12,6 +12,8 @@ IOWA.CountdownTimer.Element = function(el) {
   this.waitTime_ = 0;
   this.easeOutTime_ = 0;
   this.mode_ = IOWA.CountdownTimer.Modes.Days;
+  this.onThresholdReachedCallback_ = null;
+  this.lastThreshold_ = 'days';
 
   this.animationValue_ = 0;
   this.animationRunning_ = false;
@@ -23,8 +25,8 @@ IOWA.CountdownTimer.Element = function(el) {
   this.drawIfAnimationIsNotRunning =
       this.drawIfAnimationIsNotRunning.bind(this);
   this.update_ = this.update_.bind(this);
-  this.convertMillisecondsAndSetLabel_ =
-      this.convertMillisecondsAndSetLabel_.bind(this);
+  this.setValuesAndDispatchThresholdEventsIfNeeded_ =
+      this.setValuesAndDispatchThresholdEventsIfNeeded_.bind(this);
 
   this.addEventListeners_();
 
@@ -65,8 +67,10 @@ IOWA.CountdownTimer.Element.prototype = {
     }
     if (now > this.animationEaseOutStartTime_) {
 
-      if (this.currentDayValue === 0)
+      if (this.currentDayValue === 0) {
+        this.dispatchThresholdEventIfNeeded_("Ended");
         return;
+      }
 
       animationValue = 1 - ((now - this.animationEaseOutStartTime_) /
         this.easeOutTime_);
@@ -154,12 +158,81 @@ IOWA.CountdownTimer.Element.prototype = {
     if (this.targetDate_ < Date.now())
       return;
 
-    this.convertMillisecondsAndSetLabel_();
+    this.setValuesAndDispatchThresholdEventsIfNeeded_();
     this.needToFreezeDigits_ = true;
 
     this.updateAnimationTimingValues_();
     this.start();
 
+  },
+
+  setValuesAndDispatchThresholdEventsIfNeeded_: function() {
+
+    var millisecondsToTarget = this.targetDate_ - Date.now();
+
+    // TODO(paullewis) Set the label for the hours, minutes, seconds
+    if (millisecondsToTarget < this.millisecondsInAMinute_) {
+
+      this.mode = IOWA.CountdownTimer.Modes.HoursMinutesSeconds;
+      this.targetDayValue = 0;
+      this.currentDayValue =
+          this.convertMillisecondsToSeconds_(millisecondsToTarget);
+      this.dispatchThresholdEventIfNeeded_("Seconds");
+
+    } else if (millisecondsToTarget < this.millisecondsInAnHour_) {
+
+      this.targetDayValue =
+          this.convertMillisecondsToMinutes_(millisecondsToTarget);
+      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
+      this.dispatchThresholdEventIfNeeded_("Minutes");
+
+    } else if (millisecondsToTarget < this.millisecondsInADay_) {
+
+      this.targetDayValue =
+          this.convertMillisecondsToHours_(millisecondsToTarget);
+      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
+      this.dispatchThresholdEventIfNeeded_("Hours");
+
+    } else {
+
+      this.targetDayValue =
+          this.convertMillisecondsToDays_(millisecondsToTarget);
+      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
+      this.dispatchThresholdEventIfNeeded_("Days");
+
+    }
+  },
+
+  dispatchThresholdEventIfNeeded_: function(label) {
+
+    if (this.lastThreshold_ === label)
+      return;
+
+    if (!this.onThresholdReachedCallback)
+      return;
+
+    this.lastThreshold_ = label;
+
+    this.onThresholdReachedCallback({
+      label: label,
+      millisecondsToTarget: Math.max(0, this.targetDate_ - Date.now())
+    });
+  },
+
+  convertMillisecondsToDays_: function(milliseconds) {
+    return Math.floor(milliseconds / this.millisecondsInADay_);
+  },
+
+  convertMillisecondsToHours_: function(milliseconds) {
+    return Math.floor(milliseconds / this.millisecondsInAnHour_);
+  },
+
+  convertMillisecondsToMinutes_: function(milliseconds) {
+    return Math.floor(milliseconds / this.millisecondsInAMinute_);
+  },
+
+  convertMillisecondsToSeconds_: function(milliseconds) {
+    return Math.floor(milliseconds / this.millisecondsInASecond_);
   },
 
   start: function() {
@@ -186,68 +259,15 @@ IOWA.CountdownTimer.Element.prototype = {
 
   },
 
-  convertMillisecondsAndSetLabel_: function() {
-
-    var millisecondsToTarget = this.targetDate_ - Date.now();
-
-    // TODO(paullewis) Set the label for the hours, minutes, seconds
-    if (millisecondsToTarget < this.millisecondsInAMinute_) {
-
-      this.mode = IOWA.CountdownTimer.Modes.HoursMinutesSeconds;
-      this.targetDayValue = 0;
-      this.currentDayValue =
-          this.convertMillisecondsToSeconds_(millisecondsToTarget);
-      this.setLabel_("Seconds");
-
-    } else if (millisecondsToTarget < this.millisecondsInAnHour_) {
-
-      this.targetDayValue =
-          this.convertMillisecondsToMinutes_(millisecondsToTarget);
-      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
-      this.setLabel_("Minutes");
-
-    } else if (millisecondsToTarget < this.millisecondsInADay_) {
-
-      this.targetDayValue =
-          this.convertMillisecondsToHours_(millisecondsToTarget);
-      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
-      this.setLabel_("Hours");
-
-    } else {
-
-      this.targetDayValue =
-          this.convertMillisecondsToDays_(millisecondsToTarget);
-      this.currentDayValue = this.targetDayValue + this.timeAdjustment_;
-      this.setLabel_("Days");
-
-    }
-  },
-
-  setLabel_: function(label) {
-    console.log(label);
-  },
-
-  convertMillisecondsToDays_: function(milliseconds) {
-    return Math.floor(milliseconds / this.millisecondsInADay_);
-  },
-
-  convertMillisecondsToHours_: function(milliseconds) {
-    return Math.floor(milliseconds / this.millisecondsInAnHour_);
-  },
-
-  convertMillisecondsToMinutes_: function(milliseconds) {
-    return Math.floor(milliseconds / this.millisecondsInAMinute_);
-  },
-
-  convertMillisecondsToSeconds_: function(milliseconds) {
-    return Math.floor(milliseconds / this.millisecondsInASecond_);
+  setOnTimerThresholdReachedCallback: function(onThresholdReachedCallback) {
+    this.onThresholdReachedCallback = onThresholdReachedCallback;
   },
 
   configure: function(options) {
 
     this.targetDate_ = options.targetDate.getTime();
     this.timeAdjustment_ = options.adjustmentInDays;
-    this.convertMillisecondsAndSetLabel_();
+    this.setValuesAndDispatchThresholdEventsIfNeeded_();
 
     this.easeInTime_ = options.easeInTime;
     this.waitTime_ = options.waitTime;
@@ -297,6 +317,17 @@ IOWA.CountdownTimer.Element.prototype = {
 
   get mode() {
     return this.mode_;
+  },
+
+  set onThresholdReachedCallback(callback) {
+    if (typeof callback !== 'function')
+      return;
+
+    this.onThresholdReachedCallback_ = callback;
+  },
+
+  get onThresholdReachedCallback() {
+    return this.onThresholdReachedCallback_;
   }
 
 };
