@@ -99,6 +99,8 @@ $name: 'page-home';
 }
 
 @media (min-width: $tablet-breakpoint-min) {
+  $overlaySectionTop: 100px;
+
   .masthead-container {
     .io-logo {
       width: 256px;
@@ -134,9 +136,12 @@ $name: 'page-home';
   }
   #join {
     position: relative;
+    margin-top: -42px;
+    padding-top: $overlaySectionTop;
+
     .join__social {
       position: absolute;
-      top: 40px;
+      top: $overlaySectionTop;
       right: $desktopKeyline;
     }
   }
