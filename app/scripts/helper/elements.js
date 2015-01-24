@@ -28,16 +28,16 @@ IOWA.Elements = (function() {
       this.closeDrawer();
     });
 
-    var ripple = document.querySelector('.masthead__ripple__content');
-    IOWA.Util.resizeRipple(ripple);
-
     var masthead = document.querySelector('.masthead');
-    var mastheadMeta = document.querySelector('.masthead-meta');
+    var mastheadMeta = masthead.querySelector('.masthead-meta');
+    var ioLogoLarge = masthead.querySelector('#io-logo-large');
+    var nav = masthead.querySelector('#navbar');
+    var fab = masthead.querySelector('experiment-fab-container');
     var footer = document.querySelector('footer');
     var i18n = document.createElement('i18n-msg');
 
-    var ioLogoLarge = masthead.querySelector('#io-logo-large');
-    var nav = masthead.querySelector('#navbar');
+    var ripple = masthead.querySelector('.masthead__ripple__content');
+    IOWA.Util.resizeRipple(ripple);
 
     IOWA.Elements.Drawer = drawer;
     IOWA.Elements.I18n = i18n;
@@ -46,6 +46,7 @@ IOWA.Elements = (function() {
     IOWA.Elements.Main = main;
     IOWA.Elements.Nav = nav;
     IOWA.Elements.Ripple = ripple;
+    IOWA.Elements.FAB = fab;
     IOWA.Elements.Toast = toast;
     IOWA.Elements.IOLogo = ioLogo;
     IOWA.Elements.IOLogoLarge = ioLogoLarge;
