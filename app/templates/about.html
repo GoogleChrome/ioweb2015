@@ -77,15 +77,14 @@
   (function() {
 
     var galleryOpen = false;
-    var SCROLL_GALLERY_OFFSET_Y = 100;
+    var SCROLL_GALLERY_OFFSET_Y = 25;
+
+    var thisPage = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
 
     function scrollToGallery(opt_topPadding) {
       var el = document.querySelector('.pics__section');
-
       var padding = opt_topPadding || 0;
-      // var metrics = el.getBoundingClientRect();
-
-      IOWA.Elements.ScrollContainer.scrollTop = el.offsetTop - padding;//metrics.top - padding;
+      IOWA.Elements.ScrollContainer.scrollTop = el.offsetTop - padding;
     }
 
     function runPhotoGalleryAnimation(opt_reverse, opt_callback) {
@@ -145,8 +144,6 @@
       };
     }
 
-    var thisPage = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
-
     firstLoadSetup(thisPage);
 
     if (location.hash.substring(1) == 'photos') {
@@ -154,7 +151,7 @@
       // For now, arbitrary delay.
       setTimeout(function() {
         scrollToGallery(SCROLL_GALLERY_OFFSET_Y);
-      }, 200);
+      }, 100);
     }
 
   })();

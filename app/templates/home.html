@@ -8,6 +8,10 @@
 {% end %}
 
 {% define "content" %}
+  <core-toolbar class="navbar--overlay" fit>
+    <paper-icon-button icon="arrow-back" on-tap="{{closeVideoCard}}"></paper-icon-button>
+  </core-toolbar>
+
   <div class="card__container slide-up">
     <div class="card js-experiment-visualizer">
       <div class="card-content">
@@ -162,5 +166,28 @@
       <google-youtube videoid="ksvdvCDO7pA" chromeless height="100%" width="100%" fit></google-youtube>
     </div>
   </template>
+
+  <script>
+  (function() {
+    var thisPage = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
+
+    // Page-specific JS that runs when this page is loaded for the first time.
+    function firstLoadSetup(page) {
+      if (page.hasBeenLoaded) {
+        return;
+      }
+
+      page.hasBeenLoaded = true;
+
+      IOWA.Elements.Template.closeVideoCard = function(e, detail, sender) {
+        this.cardVideoTakeover(this.currentCard, true);
+        this.toggleOverlayNav();
+      };
+    }
+
+    firstLoadSetup(thisPage);
+
+  })();
+  </script>
 
 {% end %}

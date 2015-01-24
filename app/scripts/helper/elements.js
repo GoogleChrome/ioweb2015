@@ -91,22 +91,12 @@ IOWA.Elements = (function() {
         mastheadBgClass: 'bg-cyan'
       }
     };
+
     template.mastheadBgClass = template.pages[template.selectedPage];
     template.navBgClass = template.pages[template.selectedPage];
 
-    template.closeOverlayNav = function(e, detail, sender) {
-      this.toggleOverlayNav();
-      this.fire('overlay-navbar-close');
-    };
-
     template.toggleOverlayNav = function() {
       var nav = document.querySelector('.navbar--overlay');
-
-      // If overlay bar is coming down, stop videos and close them.
-      if (nav.classList.contains('active')) {
-        this.cardVideoTakeover(this.currentCard, true);
-      }
-
       nav.classList.toggle('active');
     };
 
@@ -217,12 +207,17 @@ IOWA.Elements = (function() {
 
     template.playVideo = function(e, detail, sender) {
       this.currentCard = sender;
-      this.fullscreenVideoActive = true; // Stamp the template's DOM.
+      this.fullscreenVideoActive = true; // Active the placeholder template.
+
+      // Wait one rAF for template to have stamped.
+      this.async(function() {
+        this.cardVideoTakeover(this.currentCard);
+      });
     };
 
-    template.videoReady = function(e, detail, sender) {
-      this.cardVideoTakeover(this.currentCard);
-    };
+    // template.videoReady = function(e, detail, sender) {
+    //   this.cardVideoTakeover(this.currentCard);
+    // };
 
     template.openShareWindow = function(e, detail, sender) {
       e.preventDefault();
