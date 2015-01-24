@@ -7,9 +7,14 @@
 {% end %}
 
 {% define "content" %}
+<!-- {{ {active: pages[selectedPage].galleryOpen} | tokenList }} -->
   <core-toolbar class="navbar--overlay" fit>
     <paper-icon-button icon="arrow-back" on-tap="{{closePhotoGallery}}"></paper-icon-button>
     <span flex><i18n-msg msgid="io-in-photos">I/O in Photos</i18n-msg></span>
+  </core-toolbar>
+
+  <core-toolbar class="navbar--overlay" fit>
+    <paper-icon-button icon="arrow-back" on-tap="{{closeVideoCard}}"></paper-icon-button>
   </core-toolbar>
 
   <div class="card__container slide-up">
@@ -76,10 +81,7 @@
   <script>
   (function() {
 
-    var galleryOpen = false;
     var SCROLL_GALLERY_OFFSET_Y = 25;
-
-    var thisPage = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
 
     function scrollToGallery(opt_topPadding) {
       var el = document.querySelector('.pics__section');
@@ -125,25 +127,30 @@
       IOWA.Elements.Template.closePhotoGallery = function(e, detail, sender) {
         this.toggleOverlayNav();
         runPhotoGalleryAnimation(true);
-        galleryOpen = false;
+
+        var page = this.pages[this.selectedPage];
+        page.galleryOpen = false;
       };
 
       IOWA.Elements.Template.togglePhotoGallery = function(e, detail, sender) {
         e.preventDefault();
 
-        if (galleryOpen) {
+        var page = this.pages[this.selectedPage];
+
+        if (page.galleryOpen) {
           runPhotoGalleryAnimation(true); // reverse animation if gallery is open.
-          galleryOpen = false;
+          page.galleryOpen = false;
         } else {
           scrollToGallery(SCROLL_GALLERY_OFFSET_Y);
           runPhotoGalleryAnimation(); // reverse animation if gallery is open.
-          galleryOpen = true;
+          page.galleryOpen = true;
         }
 
         this.toggleOverlayNav();
       };
     }
 
+    var thisPage = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
     firstLoadSetup(thisPage);
 
     if (location.hash.substring(1) == 'photos') {

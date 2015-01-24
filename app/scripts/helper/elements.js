@@ -74,22 +74,29 @@ IOWA.Elements = (function() {
 
     template.pages = {
       'schedule': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       },
       'home': {
-        mastheadBgClass: 'bg-medium-grey'
+        mastheadBgClass: 'bg-medium-grey',
+        hasBeenLoaded: false
       },
       'about': {
-        mastheadBgClass: 'bg-dark-grey'
+        mastheadBgClass: 'bg-dark-grey',
+        hasBeenLoaded: false,
+        galleryOpen: false
       },
       'onsite': {
-        mastheadBgClass: 'bg-dark-grey'
+        mastheadBgClass: 'bg-dark-grey',
+        hasBeenLoaded: false
       },
       'offsite': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       },
       'registration': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       }
     };
 
@@ -99,6 +106,11 @@ IOWA.Elements = (function() {
     template.toggleOverlayNav = function() {
       var nav = document.querySelector('.navbar--overlay');
       nav.classList.toggle('active');
+    };
+
+    template.closeVideoCard = function(e, detail, sender) {
+      this.cardVideoTakeover(this.currentCard, true);
+      this.toggleOverlayNav();
     };
 
     /**
