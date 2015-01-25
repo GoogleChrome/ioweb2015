@@ -137,13 +137,16 @@
 
         var page = this.pages[this.selectedPage];
 
-        if (page.galleryOpen) {
-          runPhotoGalleryAnimation(true); // reverse animation if gallery is open.
-          page.galleryOpen = false;
-        } else {
-          scrollToGallery(SCROLL_GALLERY_OFFSET_Y);
+        if (!page.galleryOpen) {
+          IOWA.Util.smoothScroll(
+              IOWA.Elements.Main.querySelector('.pics__section'), 400);
+
+          // scrollToGallery(SCROLL_GALLERY_OFFSET_Y);
           runPhotoGalleryAnimation(); // reverse animation if gallery is open.
           page.galleryOpen = true;
+        } else {
+          runPhotoGalleryAnimation(true); // reverse animation if gallery is open.
+          page.galleryOpen = false;
         }
 
         this.toggleOverlayNav();
