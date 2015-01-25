@@ -19,6 +19,8 @@ var reload = browserSync.reload;
 var opn = require('opn');
 var merge = require('merge-stream');
 var glob = require('glob');
+var sprintf = require("sprintf-js").sprintf;
+var webdriver = require('selenium-webdriver');
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
@@ -433,3 +435,75 @@ gulp.task('generate-service-worker-dist', function(callback) {
     });
   });
 });
+
+gulp.task('selenium-install', function(callback) {
+  var seleniumPath = path.join('node_modules', 'selenium-standalone', '.selenium', 'chromedriver');
+  fs.exists(seleniumPath, function(exists) {
+    if (exists) {
+      $.util.log(seleniumPath, 'already exists.');
+      callback();
+    } else {
+      require('selenium-standalone').install({
+        logger: $.util.log
+      }, callback);
+    }
+  });
+});
+
+gulp.task('selenium', ['backend', 'selenium-install'], function(callback) {
+  var hostAndPort = 'localhost:9999';
+  var startArgs = ['-d', APP_DIR, '-listen', hostAndPort];
+  var webServer = spawn('bin/server', startArgs, {cwd: BACKEND_DIR, stdio: 'ignore'});
+
+  var chromeWebDriver = require('selenium-webdriver/chrome');
+  var chromeDriverBinary = glob.sync('node_modules/selenium-standalone/.selenium/chromedriver/*chromedriver*')[0];
+  var driverService = new chromeWebDriver.ServiceBuilder(chromeDriverBinary).build();
+  var driver = new chromeWebDriver.Driver(null, driverService);
+
+  var killServers = function() {
+    webServer.kill();
+    driver.quit();
+  };
+
+  var pages = ['about'];//, 'home', 'offsite', 'onsite', 'registration', 'schedule'];
+  var widths = [1400];//, 900, 1200];
+  var height = 9999;
+
+  var takeScreenshotPromises = pages.map(function(page) {
+    return widths.map(function(width) {
+      return takeScreenshot(driver, page, width, height);
+    });
+  }).reduce(function(previous, current) {
+    return previous.concat(current);
+  }, []);
+
+  webdriver.promise.all(takeScreenshotPromises).then(killServers, killServers);
+});
+
+function saveScreenshot(screenshotPath, base64Data) {
+  var defered = webdriver.promise.defer();
+
+  fs.writeFile(screenshotPath, base64Data, 'base64', function(error) {
+    if (error) {
+      $.util.log('Unable to save screenshot:', error);
+      defered.reject(error);
+    } else {
+      $.util.log('Saved screenshot to', screenshotPath);
+      defered.fulfill();
+    }
+  });
+
+  return defered.promise;
+}
+
+function takeScreenshot(driver, page, width, height) {
+  return driver.get('http://localhost:9999/' + page).then(function() {
+    return driver.manage().window().setSize(width, height);
+  }).then(function() {
+    return driver.takeScreenshot();
+  }).then(function(data) {
+    var screenshotPath = sprintf('/tmp/%s-%dx%d.png', page, width, height);
+    var base64Data = data.replace(/^data:image\/png;base64,/, '');
+    return saveScreenshot(screenshotPath, base64Data);
+  });
+}
