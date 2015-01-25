@@ -20,12 +20,51 @@ IOWA.Util = IOWA.Util || (function() {
 
   "use strict";
 
-  function getWindowScrollPosition() {
-    if (typeof window.scrollY === 'undefined') {
-      return document.documentElement.scrollTop;
-    } else {
-      return window.scrollY;
+  // From http://en.wikipedia.org/wiki/Smoothstep
+  function smoothStep(start, end, point) {
+    if (point <= start) {
+      return 0;
     }
+    if (point >= end) {
+      return 1;
+    }
+    var x = (point - start) / (end - start); // interpolation
+    return x * x * (3 - 2 * x);
+  }
+
+  /**
+   * Smooth scrolls to the top of an element.
+   *
+   * @param {Element} el Element to scroll to.
+   * @param {number=} opt_duration Optional duration for the animation to
+   *     take. If not specified, the element is immediately scrolled to.
+   */
+  function smoothScroll(el, opt_duration) {
+    var duration = opt_duration || 1;
+
+    var scrollContainer = IOWA.Elements.ScrollContainer;
+
+    var startTime = performance.now();
+    var endTime = startTime + duration;
+    var startTop = scrollContainer.scrollTop;
+    var destY = el.getBoundingClientRect().top;
+
+    if (destY === 0) {
+      return; // already at top of element.
+    }
+
+    var callback = function(timestamp) {
+      if (timestamp < endTime) {
+        requestAnimationFrame(callback);
+      }
+
+      var point = smoothStep(startTime, endTime, timestamp);
+      var scrollTop = Math.round(startTop + (destY * point));
+
+      scrollContainer.scrollTop = scrollTop;
+    };
+
+    callback(startTime);
   }
 
   function isIOS() {
@@ -71,7 +110,7 @@ IOWA.Util = IOWA.Util || (function() {
     isIE: isIE,
     isIOS: isIOS,
     isSafari: isSafari,
-    getWindowScrollPosition: getWindowScrollPosition,
+    smoothScroll: smoothScroll,
     getStaticBaseURL: getStaticBaseURL,
     resizeRipple: resizeRipple
   };

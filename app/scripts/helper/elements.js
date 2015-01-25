@@ -28,16 +28,16 @@ IOWA.Elements = (function() {
       this.closeDrawer();
     });
 
-    var ripple = document.querySelector('.masthead__ripple__content');
-    IOWA.Util.resizeRipple(ripple);
-
     var masthead = document.querySelector('.masthead');
-    var mastheadMeta = document.querySelector('.masthead-meta');
+    var mastheadMeta = masthead.querySelector('.masthead-meta');
+    var ioLogoLarge = masthead.querySelector('#io-logo-large');
+    var nav = masthead.querySelector('#navbar');
+    var fab = masthead.querySelector('experiment-fab-container');
     var footer = document.querySelector('footer');
     var i18n = document.createElement('i18n-msg');
 
-    var ioLogoLarge = masthead.querySelector('#io-logo-large');
-    var nav = masthead.querySelector('#navbar');
+    var ripple = masthead.querySelector('.masthead__ripple__content');
+    IOWA.Util.resizeRipple(ripple);
 
     IOWA.Elements.Drawer = drawer;
     IOWA.Elements.I18n = i18n;
@@ -46,6 +46,7 @@ IOWA.Elements = (function() {
     IOWA.Elements.Main = main;
     IOWA.Elements.Nav = nav;
     IOWA.Elements.Ripple = ripple;
+    IOWA.Elements.FAB = fab;
     IOWA.Elements.Toast = toast;
     IOWA.Elements.IOLogo = ioLogo;
     IOWA.Elements.IOLogoLarge = ioLogoLarge;
@@ -73,37 +74,43 @@ IOWA.Elements = (function() {
 
     template.pages = {
       'schedule': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       },
       'home': {
-        mastheadBgClass: 'bg-medium-grey'
+        mastheadBgClass: 'bg-medium-grey',
+        hasBeenLoaded: false
       },
       'about': {
-        mastheadBgClass: 'bg-dark-grey'
+        mastheadBgClass: 'bg-dark-grey',
+        hasBeenLoaded: false,
+        galleryOpen: false
       },
       'onsite': {
-        mastheadBgClass: 'bg-dark-grey'
+        mastheadBgClass: 'bg-dark-grey',
+        hasBeenLoaded: false
       },
       'offsite': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       },
       'registration': {
-        mastheadBgClass: 'bg-cyan'
+        mastheadBgClass: 'bg-cyan',
+        hasBeenLoaded: false
       }
     };
+
     template.mastheadBgClass = template.pages[template.selectedPage];
     template.navBgClass = template.pages[template.selectedPage];
 
     template.toggleOverlayNav = function() {
       var nav = document.querySelector('.navbar--overlay');
-
-      // If overlay bar is down, stop
-      if (nav.classList.contains('active')) {
-        this.cardVideoTakeover(this.currentCard, true);
-      }
-
       nav.classList.toggle('active');
-      this.fire('overlay-navbar-toggle', nav.classList.contains('active'));
+    };
+
+    template.closeVideoCard = function(e, detail, sender) {
+      this.cardVideoTakeover(this.currentCard, true);
+      this.toggleOverlayNav();
     };
 
     /**
@@ -213,12 +220,17 @@ IOWA.Elements = (function() {
 
     template.playVideo = function(e, detail, sender) {
       this.currentCard = sender;
-      this.fullscreenVideoActive = true; // Stamp the template's DOM.
+      this.fullscreenVideoActive = true; // Active the placeholder template.
+
+      // Wait one rAF for template to have stamped.
+      this.async(function() {
+        this.cardVideoTakeover(this.currentCard);
+      });
     };
 
-    template.videoReady = function(e, detail, sender) {
-      this.cardVideoTakeover(this.currentCard);
-    };
+    // template.videoReady = function(e, detail, sender) {
+    //   this.cardVideoTakeover(this.currentCard);
+    // };
 
     template.openShareWindow = function(e, detail, sender) {
       e.preventDefault();

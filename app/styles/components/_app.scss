@@ -163,14 +163,14 @@ h3, h4, h5, h6 {
   .slide-up-delay {
     transform: translateY(100px);
     opacity: 0;
-    will-change: transform;
+    will-change: transform, opacity;
   }
 
   .slide-up {
     transform: translateY(100px);
     opacity: 0;
     position: relative;
-    will-change: transform;
+    will-change: transform, opacity;
   }
 }
 
