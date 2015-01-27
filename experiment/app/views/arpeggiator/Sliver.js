@@ -30,15 +30,7 @@ module.exports = (function() {
 
     var shadowLength;
 
-    if (depth === 3) {
-      shadowLength = 15;
-    } else if (depth === 2) {
-      shadowLength = 30;
-    } else if (depth === 1) {
-      shadowLength = 45;
-    } else {
-      shadowLength = 0;
-    }
+    shadowLength = 15;
 
     const [
       COLOR_A,

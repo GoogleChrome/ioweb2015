@@ -250,8 +250,7 @@ limitations under the License.
 
           <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
           <div flex><a href="./" data-ajax-link data-track-link="nav-home" data-anim-ripple><div class="io-logo"></div></a></div>
-          <paper-tabs class="white {{ navBgClass }}" link noink
-            valueattr="label" selected="{{selectedPage}}">
+          <paper-tabs class="white {{ navBgClass }}" valueattr="label" selected="{{selectedPage}}" link noink>
             <paper-tab label="about">
               <a href="about" data-ajax-link data-track-link="nav-about" data-anim-ripple layout horizontal center>
                 <i18n-msg msgid="about">About</i18n-msg>
@@ -296,7 +295,7 @@ limitations under the License.
 
         <i18n-msg id="share-dialog-text" msgid="share-text" hidden>Google I/O 2015 brings together developers for an immersive, two-day experience focused on exploring the next generation of technology, mobile and beyond. Join us online or in person Smarch xx-xx, 2015.</i18n-msg>
 
-        <img src="images/google-logo.svg" self-end>
+        <img src="images/google-logo.svg" self-end alt="Google Logo">
         <div class="footer-content" flex layout vertical end>
           <a href="#navbar" class="footer-backtotop">Back to the top <core-icon icon="expand-less"></core-icon></a>
           <nav layout vertical end justified>

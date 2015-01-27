@@ -194,7 +194,7 @@ module.exports = (function() {
       delay = frameWait;
 
       getRun();
-      tickChase(delta);
+      tickChase();
       stepPhysics(delta);
       drawCircles();
     }
@@ -236,9 +236,8 @@ module.exports = (function() {
 
     /**
      * Chase the target points.
-     * @param {number} delta - The animation delta.
      */
-    function tickChase(delta) {
+    function tickChase() {
       for (let i = 0; i < circles.length; i++) {
         targetRadius[i] = targetRadius[i] || baseInstrumentRadius;
         circles[i].circleShape.radius += (targetRadius[i] - circles[i].circleShape.radius) * 0.08;
@@ -255,7 +254,7 @@ module.exports = (function() {
       positionInstrumentCircles();
 
       getRun();
-      tickChase(0);
+      tickChase();
       drawCircles();
     }
 

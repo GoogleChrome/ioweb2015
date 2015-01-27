@@ -111,6 +111,18 @@ module.exports = (function() {
      * @param {Model} initialData - The guitar data.
      */
     function loadData(initialData) {
+      if (currentTrack) {
+        audioManager.removeTrack(currentTrack);
+      }
+
+      for (let pid in guitarStrings) {
+        if (guitarStrings.hasOwnProperty(pid)) {
+          guitarStrings[pid].tearDown();
+          delete dots[pid];
+          addToPool(pid);
+        }
+      }
+
       if (initialData.strings.length <= 0) { return; }
 
       allData = initialData;
@@ -244,6 +256,24 @@ module.exports = (function() {
      * Create the grid of dots in the guitar view.
      */
     function createDotGrid() {
+      for (let pid in dots) {
+        if (dots.hasOwnProperty(pid)) {
+          let {
+            gridDotMiddle,
+            gridDot,
+            gridDotUpper
+          } = dots[pid];
+
+          dots[pid].tearDown();
+
+          baseLayer.removeChild(gridDot);
+          topLayer.removeChild(gridDotUpper);
+          midLayer.removeChild(gridDotMiddle);
+
+          delete dots[pid];
+        }
+      }
+
       for (let i = 0; i < gridCount; i++) {
         let dot = new Dot(i);
 

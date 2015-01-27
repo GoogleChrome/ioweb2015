@@ -14,9 +14,16 @@ module.exports = (function() {
     'pid', Number
   );
 
+  var ParallelogramModel = DataModel.defineSchema('ParallelogramModel',
+    'sound', Number,
+    'color', Number,
+    'hovercolor', Number
+  );
+
   // Describes the entire data set of the instrument.
   var ParallelogramInstrumentModel = DataModel.defineSchema('ParallelogramInstrumentModel',
-    'recorded', [ParallelogramNoteModel]
+    'recorded', [ParallelogramNoteModel],
+    'parallelograms', [ParallelogramModel]
   );
 
   /**
@@ -27,27 +34,27 @@ module.exports = (function() {
     return {
       'parallelograms': [
         {
-          'sound': 'parallelogram_D-sharp-major',
+          'sound': 23,
           'color': 0xffffff,
           'hovercolor': 0xF2FBFD
         },
         {
-          'sound': 'parallelogram_G-minor',
+          'sound': 24,
           'color': 0x4dd0e0,
           'hovercolor': 0x3DCCDE
         },
         {
-          'sound': 'parallelogram_G-sharp-major',
+          'sound': 25,
           'color': 0xb1eaf2,
           'hovercolor': 0x9FE6EE
         },
         {
-          'sound': 'parallelogram_A-sharp-major',
+          'sound': 21,
           'color': 0x0097a7,
           'hovercolor': 0x00A9BD
         },
         {
-          'sound': 'parallelogram_C-minor',
+          'sound': 22,
           'color': 0x006064,
           'hovercolor': 0x007B85
         }

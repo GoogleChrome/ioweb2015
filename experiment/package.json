@@ -1,5 +1,6 @@
 {
   "name": "google-io-2015-experiment",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "app/index.js",
@@ -8,7 +9,7 @@
   },
   "homepage": "https://github.com/Instrument/google-io-2015-experiment",
   "devDependencies": {
-    "6to5": "^2.13.5",
+    "6to5": "^2.13.7",
     "6to5-loader": "^2.0.0",
     "audiosprite": "^0.4.0",
     "autoprefixer-loader": "^1.1.0",
@@ -19,7 +20,7 @@
     "es6-symbol": "^0.1.1",
     "exports-loader": "^0.6.2",
     "file-loader": "^0.8.1",
-    "gsap": "^1.15.0",
+    "gsap": "^1.15.1",
     "imports-loader": "^0.6.3",
     "jshint": "^2.6.0",
     "jshint-loader": "^0.8.1",

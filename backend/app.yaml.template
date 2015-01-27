@@ -6,45 +6,45 @@ threadsafe: yes
 
 handlers:
 
-- url: /experiment
+- url: $PREFIX$/experiment
   static_dir: app/experiment
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /fonts
+- url: $PREFIX$/fonts
   static_dir: app/fonts
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /images
+- url: $PREFIX$/images
   static_dir: app/images
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /styles
+- url: $PREFIX$/styles
   static_dir: app/styles
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /scripts
+- url: $PREFIX$/scripts
   static_dir: app/scripts
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /temporary_api
+- url: $PREFIX$/temporary_api
   static_dir: app/temporary_api
   # need access from the backend
   application_readable: true
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /upgrade
+- url: $PREFIX$/upgrade
   static_files: app/upgrade.html
   upload: app/upgrade.html
   http_headers:
     access-control-allow-origin: "*"
 
-- url: /(.+\.html)$
+- url: $PREFIX$/(.+\.html)$
   static_files: app/\1
   upload: app/.+\.html$
   # need access to app/templates
@@ -54,19 +54,19 @@ handlers:
 
 # all other static assets in app/ root dir,
 # including service worker
-- url: /(.+\.(json|ico|txt|js|mp3))$
+- url: $PREFIX$/(.+\.(json|ico|txt|js|mp3))$
   static_files: app/\1
   upload: app/(.+\.(json|ico|txt|js|mp3))$
   http_headers:
     access-control-allow-origin: "*"
 
 # development-only
-- url: /bower_components
+- url: $PREFIX$/bower_components
   static_dir: app/bower_components
   http_headers:
     Access-Control-Allow-Origin: "*"
 
-- url: /elements
+- url: $PREFIX$/elements
   static_dir: app/elements
   http_headers:
     Access-Control-Allow-Origin: "*"

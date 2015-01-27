@@ -58,7 +58,8 @@ module.exports = (function() {
       addEventListeners,
       removeEventListeners,
       setSize,
-      setPosition
+      setPosition,
+      tearDown
     };
 
     var onActivateCallback;
@@ -142,13 +143,13 @@ module.exports = (function() {
         onDeactivateCallback(self);
       };
 
-      parallelogram.mouseover = function(mouseData){
+      parallelogram.mouseover = function(){
         parallelogram.tint = hoverColor;
-      }
+      };
 
-      parallelogram.mouseout = function(mouseData){
+      parallelogram.mouseout = function(){
         parallelogram.tint = color;
-      }
+      };
 
       document.addEventListener('keydown', onParallelogramsKeyDown);
       document.addEventListener('keyup', onParallelogramsKeyUp);
@@ -168,6 +169,15 @@ module.exports = (function() {
 
       document.removeEventListener('keydown', onParallelogramsKeyDown);
       document.removeEventListener('keyup', onParallelogramsKeyUp);
+    }
+
+    /**
+     * Clean up.
+     */
+    function tearDown() {
+      removeEventListeners();
+      onActivateCallback = null;
+      onDeactivateCallback = null;
     }
 
     var scale = {

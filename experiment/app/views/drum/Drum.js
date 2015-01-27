@@ -23,7 +23,6 @@ module.exports = (function() {
     var container = new PIXI.DisplayObjectContainer();
 
     var shape = new PIXI.Circle(0, 0, model.radius);
-    container.alpha = 0.8;
 
     var circle = new PIXI.Graphics();
     circle.beginFill(0xffffff);
@@ -44,23 +43,26 @@ module.exports = (function() {
     container.addChild(circle);
 
     var hitCircleGfx = new PIXI.Graphics();
-    hitCircleGfx.beginFill(color, 0.6);
+    hitCircleGfx.beginFill(0x4527A0, 0.6);
     hitCircleGfx.drawShape(shape);
     hitCircleGfx.endFill();
 
     var hitTexture = hitCircleGfx.generateTexture(window.devicePixelRatio > 1.5 ? 2 : 1);
+    var hitCircleContainer = new PIXI.DisplayObjectContainer();
 
     var self = {
       pid,
       soundName,
       container,
+      hitCircleContainer,
       render,
       activate,
       addEventListeners,
       removeEventListeners,
       onActivate,
       setPosition,
-      showCollision
+      showCollision,
+      tearDown
     };
 
     var physicsBody = addToPhysics();
@@ -75,7 +77,7 @@ module.exports = (function() {
 
       container.mousedown = container.touchstart = function(data) {
         interactionData = data;
-        container.alpha = 0.6;
+        container.alpha = 0.8;
 
         container.parent.setChildIndex( container , container.parent.children.length-1);
 
@@ -86,7 +88,7 @@ module.exports = (function() {
 
       // set the events for when the mouse is released or a touch is released
       container.mouseup = container.mouseupoutside = container.touchend = container.touchendoutside = function() {
-        container.alpha = 0.8;
+        container.alpha = 1;
         isDragging = false;
         interactionData = null;
 
@@ -94,13 +96,13 @@ module.exports = (function() {
         animate.to(shadow.position, 0.5, { x: 3, y: -4 });
       };
 
-      circle.mouseover = function(mouseData){
+      circle.mouseover = function() {
         circle.tint = hoverColor;
-      }
+      };
 
-      circle.mouseout = function(mouseData){
+      circle.mouseout = function() {
         circle.tint = color;
-      }
+      };
 
       // set the callbacks for when the mouse or a touch moves
       container.mousemove = container.touchmove = function() {
@@ -123,6 +125,15 @@ module.exports = (function() {
       container.mousedown = container.touchstart = null;
       container.mouseup = container.mouseupoutside = container.touchend = container.touchendoutside = null;
       container.mousemove = container.touchmove = null;
+    }
+
+    /**
+     * Cleanup.
+     */
+    function tearDown() {
+      physicsWorld.removeBody(physicsBody);
+      removeEventListeners();
+      onActivationCallback = null;
     }
 
     /**
@@ -155,24 +166,40 @@ module.exports = (function() {
     }
 
     /**
-     * Emit a circle.
+     * Animate out a ring from the drum.
      * @param {number} delay - The delay duration.
+     * @return {Promise}
+     */
+    function collisionRing(delay) {
+      var hitCircle = new PIXI.Sprite(hitTexture);
+      hitCircle.alpha = 0;
+      hitCircle.anchor.x = hitCircle.anchor.y = 0.5;
+      hitCircle.alpha = 0.8;
+      hitCircle.position.x = container.position.x;
+      hitCircle.position.y = container.position.y;
+
+      hitCircleContainer.addChildAt(hitCircle, 0);
+
+      return Promise.all([
+        animate.to(hitCircle.scale, 1.2, { x: 3, y: 3, delay: delay, ease: Cubic.easeOut }),
+        animate.to(hitCircle, 1.2, { alpha: 0, delay: delay, ease: Cubic.easeOut })
+      ]).then(function() {
+        hitCircleContainer.removeChild(hitCircle);
+      });
+    }
+
+    /**
+     * Emit a circle.
+     * @param {number=0} delay - The delay duration.
      */
     function showCollision(delay) {
+      delay = delay || 0;
+
       tweenData.y = model.y - 25;
       TweenMax.killTweensOf(tweenData);
       TweenMax.to(tweenData, 0.2, { y: model.y, onUpdate: visualUpdate, ease: Expo.easeOut });
 
-      var hitCircle = new PIXI.Sprite(hitTexture);
-      hitCircle.anchor.x = hitCircle.anchor.y = 0.5;
-      container.addChildAt(hitCircle, 0);
-
-      Promise.all([
-        animate.to(hitCircle.scale, 0.5, { x: 1.5, y: 1.5, delay: delay }),
-        animate.to(hitCircle, 0.4, { alpha: 0, delay: delay + 0.1, ease: Cubic.easeOut })
-      ]).then(function() {
-        container.removeChild(hitCircle);
-      });
+      collisionRing(delay);
     }
 
     /**

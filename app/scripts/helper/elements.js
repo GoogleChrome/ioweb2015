@@ -91,8 +91,9 @@ IOWA.Elements = (function() {
         mastheadBgClass: 'bg-cyan'
       }
     };
-    template.mastheadBgClass = template.pages[template.selectedPage];
-    template.navBgClass = template.pages[template.selectedPage];
+
+    template.mastheadBgClass = template.pages[template.selectedPage].mastheadBgClass;
+    template.navBgClass = template.mastheadBgClass;
 
     template.toggleOverlayNav = function() {
       var nav = document.querySelector('.navbar--overlay');

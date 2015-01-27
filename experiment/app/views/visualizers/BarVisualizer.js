@@ -107,7 +107,7 @@ module.exports = (function() {
     /**
      * On render, draw bars
      */
-    function render(delta) {
+    function render() {
       delay--;
 
       if (delay > 0) {
@@ -117,7 +117,7 @@ module.exports = (function() {
       delay = frameWait;
 
       getRun();
-      tickChase(delta);
+      tickChase();
       drawBars();
     }
 
@@ -131,15 +131,14 @@ module.exports = (function() {
       segments = Math.ceil(xMax / STEPS);
 
       getRun();
-      tickChase(0);
+      tickChase();
       drawBars();
     }
 
     /**
      * Chase the target points.
-     * @param {number} delta - The animation delta.
      */
-    function tickChase(delta) {
+    function tickChase() {
       for (let i = 0; i < targetPoints.length; i++) {
         for (let j = 0; j < targetPoints[i].length; j += 2) {
           currentPoints[i][j] = targetPoints[i][j];

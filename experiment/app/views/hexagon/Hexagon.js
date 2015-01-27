@@ -67,7 +67,6 @@ module.exports = (function() {
       cachedTexture = textureGfx.generateTexture(window.devicePixelRatio > 1.5 ? 2 : 1);
     }
 
-    // TODO: Maybe disable shadow on mobile?
     if (!hexagonShadow) {
       var shadowCanvas = makeHexagonShadow(shape.points, radius, 25);
       hexagonShadow = PIXI.Texture.fromCanvas(shadowCanvas);
@@ -102,13 +101,13 @@ module.exports = (function() {
         onActivateCallback(cube);
       };
 
-      container.mouseover = function(mouseData){
+      container.mouseover = function(){
         background.tint = 0xC44441;
-      }
+      };
 
-      container.mouseout = function(mouseData){
+      container.mouseout = function(){
         background.tint = color;
-      }
+      };
     }
 
     function removeEventListeners() {

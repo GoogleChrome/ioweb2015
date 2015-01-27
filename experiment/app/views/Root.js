@@ -55,7 +55,8 @@ module.exports = function(audioManager, stateManager) {
     animateOut,
     cleanUp,
     didEnterRecordingMode,
-    didExitRecordingMode
+    didExitRecordingMode,
+    reloadData
   };
 
   var maskManager = new MaskManager('experiment-is-masked');
@@ -115,10 +116,7 @@ module.exports = function(audioManager, stateManager) {
     scrollElement.addEventListener('scroll', onWindowScrollStart);
     scrollElement.addEventListener('scroll', onWindowScrollStop);
 
-    for (let i = 0; i < instrumentViews.length; i++) {
-      let v = instrumentViews[i].getView();
-      v.loadData(stateManager.currentData()[v.name]);
-    }
+    loadData();
 
     viewportElement.appendChild(logoElement);
     viewportElement.appendChild(logoDialog);
@@ -128,6 +126,24 @@ module.exports = function(audioManager, stateManager) {
 
     logoClick();
     dialogClick();
+  }
+
+  /**
+   * Load the global state into each view.
+   */
+  function loadData() {
+    for (let i = 0; i < instrumentViews.length; i++) {
+      let v = instrumentViews[i].getView();
+      v.loadData(stateManager.currentData()[v.name]);
+    }
+  }
+
+  /**
+   * Reload the initial global state into each view.
+   */
+  function reloadData() {
+    stateManager.reloadFirstLoadData();
+    loadData();
   }
 
   /**

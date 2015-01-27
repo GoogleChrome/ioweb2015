@@ -146,13 +146,17 @@ module.exports = (function() {
      * @param {Model} initialData - The guitar data.
      */
     function loadData(d) {
+      if (currentTrack) {
+        audioManager.removeTrack(currentTrack);
+      }
+
       data = d;
 
       currentTrack = audioManager.createRecordedTrack(
-          data.recorded,
-          CHANNEL,
-          ARPEGIATOR_TAG
-          );
+        data.recorded,
+        CHANNEL,
+        ARPEGIATOR_TAG
+      );
 
       audioManager.addTrack(currentTrack);
     }

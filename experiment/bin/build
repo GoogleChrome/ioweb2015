@@ -1,4 +1,4 @@
 #!/bin/bash
 
 npm install
-STATIC_BASE=$1 node_modules/webpack/bin/webpack.js -p
+STATIC_BASE=$1 node_modules/webpack/bin/webpack.js -p --bail

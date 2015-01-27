@@ -101,10 +101,10 @@ module.exports = (function() {
       renderer.updateTexture(recordIconImage.texture.baseTexture);
       renderer.updateTexture(recordCircle.texture.baseTexture);
       renderer.updateTexture(checkboxCircle.texture.baseTexture);
-      for (let i = 0; i < recordText.length; i++) {
+      for (let i = 0; i <= recordText.length; i++) {
         renderer.updateTexture(recordText[i].texture.baseTexture);
       }
-      for (let i = 0; i < recordNumbers.length; i++) {
+      for (let i = 0; i <= recordNumbers.length; i++) {
         renderer.updateTexture(recordNumbers[i].texture.baseTexture);
       }
 
@@ -137,12 +137,13 @@ module.exports = (function() {
       backIconContainer.addChild(backIcon);
       backIconContainer.alpha = 0;
 
-      recordButton = new RecordButton(audioManager, 10, 4);
+      recordButton = new RecordButton(audioManager);
       recordButton.container.position.x = window.innerWidth - 62;
       recordButton.container.position.y = 56;
       recordButton.container.pivot.set(28,28);
       recordButton.container.scale.x = 0;
       recordButton.container.scale.y = 0;
+      recordButton.onCountdownActivate(onCountdownActivate);
       recordButton.onRecordActivate(onRecordActivate);
       recordButton.onRecordDeactivate(onRecordDeactivate);
 
@@ -172,10 +173,9 @@ module.exports = (function() {
 
     /**
      * Animate the controls in.
-     * @param {number} delay - Animation delay.
      * @return {Promise}
      */
-    function showControls(delay) {
+    function showControls() {
       stage.addChild(controls);
 
       backIconContainer.interactive = true;
@@ -188,9 +188,10 @@ module.exports = (function() {
         animate.to(backIconContainer, 0.1, {
           alpha: 1
         });
-        animate.to(recordButton.container.scale, 0.2, {
+        animate.to(recordButton.container.scale, 0.33, {
           x: 1,
-          y: 1
+          y: 1,
+          ease: Back.easeOut
         });
       });
     }
@@ -205,19 +206,30 @@ module.exports = (function() {
       backIconContainer.buttonMode = false;
       backIconContainer.click = null;
 
-      return animate.to(controls, 0.3, {
+      return animate.to(controls, 0.2, {
         y: -100,
         delay: delay
       }).then(function() {
         stage.addChild(controls);
-        animate.to(backIconContainer, 0.1, {
+        animate.set(backIconContainer, {
           alpha: 0
         });
-        animate.to(recordButton.container.scale, 0.2, {
+        animate.set(recordButton.container.scale, {
           x: 0,
           y: 0
         });
       });
+    }
+
+    /**
+     * Activate countdown
+     */
+    function onCountdownActivate() {
+      backIconContainer.interactive = false;
+      animate.to(backIconContainer, 0.33, {
+        alpha: 0
+      });
+      document.removeEventListener('keyup', onGlobalKeyUp);
     }
 
     /**
@@ -235,6 +247,11 @@ module.exports = (function() {
     function onRecordDeactivate() {
       if ('function' === typeof instrumentView.stopRecording) {
         instrumentView.stopRecording();
+        backIconContainer.interactive = true;
+        animate.to(backIconContainer, 0.33, {
+          alpha: 1
+        });
+        document.addEventListener('keyup', onGlobalKeyUp);
       }
 
       logRecorded();

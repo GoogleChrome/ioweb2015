@@ -13,7 +13,20 @@ window.experiment = (function() {
   }
 
   function hasWebGL() {
-    return !!window.WebGLRenderingContext;
+    var claimsSupport = false;
+    var canvas = document.createElement('canvas');
+
+    if ('supportsContext' in canvas) {
+      claimsSupport = canvas.supportsContext('webgl') || canvas.supportsContext('experimental-webgl');
+    } else {
+      claimsSupport = !!window.WebGLRenderingContext;
+    }
+
+    // Safari 7 says WebGL is enabled, even when it isn't.
+    var isSafari7 = window.navigator.userAgent.match(/Safari/) &&
+                    window.navigator.userAgent.match(/Version\/7/);
+
+    return claimsSupport && !isSafari7;
   }
 
   function hasWebAudio() {

@@ -30,7 +30,7 @@
                         data-track-link="about-view-photos-section"
                         on-tap="{{togglePhotoGallery}}">
             <i18n-msg msgid="see-more-photos">See more photos from past I/Os</i18n-msg>
-            <core-icon icon="io:photo-camera"></core-icon>
+            <core-icon icon="io:photo-camera" aria-hidden="true"></core-icon>
           </paper-button>
         </div>
       </div>
@@ -50,8 +50,8 @@
       <div class="card" layout vertical auto-vertical flex on-tap="{{playVideo}}">
         <div flex class="card__photo card__photo--recap"></div>
         <div class="card-content">
-          <img src="images/play-video-button.png" class="play__button">
-          <a href="https://www.youtube.com/watch?v=ksvdvCDO7pA" data-track-link="about-watch-2014-recap-video"><core-icon icon="io:play-circle-fill"></core-icon> <i18n-msg msgid="watch-recap-video">Watch the 2014 I/O Recap Video</i18n-msg></a>
+          <img src="images/play-video-button.png" class="play__button" alt="Play video">
+          <a href="https://www.youtube.com/watch?v=ksvdvCDO7pA" data-track-link="about-watch-2014-recap-video"><core-icon icon="io:play-circle-fill" aria-hidden="true"></core-icon> <i18n-msg msgid="watch-recap-video">Watch the 2014 I/O Recap Video</i18n-msg></a>
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ limitations under the License.
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
+<script src="../../bower_components/es6-promise-2.0.1.min/index.js"></script>
 <script src="webgl-globe-namespace.js"></script>
 <script src="matrix4x4.js"></script>
 <script src="shader-program.js"></script>
@@ -44,7 +45,7 @@ Makes a globe or whatever.
   </template>
   <script>
   (function() {
-    /* global IOWA */
+    /* global IOWA, ES6Promise */
     var ShaderProgram = IOWA.WebglGlobe.ShaderProgram;
     var Matrix4x4 = IOWA.WebglGlobe.Matrix4x4;
     var generateGeometry = IOWA.WebglGlobe.generateGeometry;
@@ -62,6 +63,9 @@ Makes a globe or whatever.
      * @type {!Matrix4x4}
      */
     var tmpTransform = new Matrix4x4();
+
+    // Trigger es6-promise
+    ES6Promise.polyfill();
 
     Polymer({
       /**

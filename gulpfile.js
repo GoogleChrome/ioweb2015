@@ -32,9 +32,8 @@ var DIST_EXPERIMENT_DIR = APP_DIR + '/experiment';
 
 var STATIC_VERSION = 1; // Cache busting static assets.
 var VERSION = argv.build || STATIC_VERSION;
-
-// TODO: update this URL to be correct for prod.
-var EXPERIMENT_STATIC_URL = '/experiment/';
+var URL_PREFIX = (argv.urlPrefix || '').replace(/\/+$/g, '') || '/io2015';
+var EXPERIMENT_STATIC_URL = URL_PREFIX + '/experiment/';
 
 // Clears files cached by gulp-cache (e.g. anything using $.cache).
 gulp.task('clear', function (done) {
@@ -109,7 +108,10 @@ gulp.task('copy-assets', function() {
     APP_DIR + '/styles/**.css',
     APP_DIR + '/styles/pages/upgrade.css',
     APP_DIR + '/elements/**/images/*',
+    APP_DIR + '/elements/webgl-globe/shaders/*.{frag,vert}',
+    APP_DIR + '/elements/webgl-globe/textures/*.{jpg,png}',
     APP_DIR + '/bower_components/webcomponentsjs/webcomponents.min.js',
+    APP_DIR + '/bower_components/es6-promise-2.0.1.min/index.js',
     DIST_EXPERIMENT_DIR + '/**/*'
   ], {base: './'});
 
@@ -126,10 +128,15 @@ gulp.task('copy-backend', function(cb) {
     BACKEND_DIR + '/*.pem',
     BACKEND_DIR + '/whitelist'
   ], {base: './'})
+  // server_gae.go
+  .pipe($.replace(/(httpPrefix = ")[^"]*/g, '$1' + URL_PREFIX))
   .pipe(gulp.dest(DIST_STATIC_DIR))
   .on('end', function() {
-    var destLink = [DIST_STATIC_DIR, BACKEND_DIR, APP_DIR].join('/');
-    fs.symlink('../' + APP_DIR, destLink, cb);
+    var destBackend = [DIST_STATIC_DIR, BACKEND_DIR].join('/');
+    // ../app <= dist/backend/app
+    fs.symlinkSync('../' + APP_DIR, destBackend + '/' + APP_DIR);
+    // create dist/backend/app.yaml from backend/app.yaml.template
+    generateAppYaml(destBackend, URL_PREFIX, cb);
   });
 });
 
@@ -213,11 +220,10 @@ gulp.task('pagespeed', pagespeed.bind(null, {
 // Start a standalone server (no GAE SDK needed) serving both front-end and backend,
 // watch for file changes and live-reload when needed.
 // If you don't want file watchers and live-reload, use '--no-watch' option.
-
 gulp.task('serve', ['backend', 'generate-service-worker-dev'], function() {
   var noWatch = argv.watch === false;
   var serverAddr = 'localhost:' + (noWatch ? '3000' : '8080');
-  var startArgs = ['-d', APP_DIR, '-listen', serverAddr];
+  var startArgs = ['-d', APP_DIR, '-listen', serverAddr, '-prefix', URL_PREFIX];
   var start = spawn.bind(null, 'bin/server', startArgs, {cwd: BACKEND_DIR, stdio: 'inherit'});
 
   if (noWatch) {
@@ -254,40 +260,19 @@ gulp.task('serve', ['backend', 'generate-service-worker-dev'], function() {
 
 // The same as 'serve' task but using GAE dev appserver.
 // If you don't want file watchers and live-reload, use '--no-watch' option.
-gulp.task('serve:gae', ['generate-service-worker-dev'], function() {
+gulp.task('serve:gae', ['generate-service-worker-dev'], function(callback) {
   var appEnv = process.env.APP_ENV || 'dev';
-  var restoreAppYaml = changeBackendGaeAppVersion('v-' + appEnv);
-
-  var noWatch = argv.watch === false;
-  var serverAddr = 'localhost:' + (noWatch ? '3000' : '8080');
-  var args = ['preview', 'app', 'run', BACKEND_DIR, '--host', serverAddr];
-
-  var backend = spawn('gcloud', args, {stdio: 'inherit'});
-  if (noWatch) {
-    process.on('exit', restoreAppYaml);
-    serverAddr = 'http://' + serverAddr;
-    console.log('The site should now be available at: ' + serverAddr);
-    // give GAE server some time to start
-    setTimeout(opn.bind(null, serverAddr, null, null), 2000);
-    return;
-  }
-
-  browserSync.emitter.on('service:exit', restoreAppYaml);
-  // give GAE server some time to start
-  setTimeout(browserSync.bind(null, {notify: false, proxy: serverAddr}), 2000);
-  watch();
+  var watchFiles = argv.watch !== false;
+  var run = startGaeBackend.bind(null, BACKEND_DIR, appEnv, watchFiles, callback);
+  generateAppYaml(BACKEND_DIR, URL_PREFIX, run);
 });
 
 // Serve build with GAE dev appserver. This is how it would look in production.
 // There are no file watchers.
-gulp.task('serve:dist', ['default'], function() {
-  var distAppYamlPath = DIST_STATIC_DIR + '/' + BACKEND_APP_YAML;
+gulp.task('serve:dist', ['default'], function(callback) {
   var appEnv = process.env.APP_ENV || 'prod';
-  var restoreAppYaml = changeBackendGaeAppVersion('v-' + appEnv, distAppYamlPath);
-  process.on('exit', restoreAppYaml);
-
-  var args = ['preview', 'app', 'run', DIST_STATIC_DIR + '/' + BACKEND_DIR];
-  spawn('gcloud', args, {stdio: 'inherit'});
+  var backendDir = DIST_STATIC_DIR + '/' + BACKEND_DIR;
+  startGaeBackend(backendDir, appEnv, false, callback);
 });
 
 gulp.task('vulcanize', ['vulcanize-elements']);
@@ -387,10 +372,50 @@ function testBackend() {
   return spawn('go', args, {cwd: BACKEND_DIR, stdio: 'inherit'});
 }
 
+// Start GAE-based backend server with backendDir as the app root directory.
+// Also, enable live-reload if watchFiles === true.
+// appEnv is either 'stage', 'prod' or anything else. The latter defaults to
+// dev env.
+function startGaeBackend(backendDir, appEnv, watchFiles, callback) {
+  var restoreAppYaml = changeAppYamlVersion('v-' + appEnv, backendDir + '/app.yaml');
+  var onExit = function() {
+    restoreAppYaml();
+    callback();
+  };
+
+  var serverAddr = 'localhost:' + (watchFiles ? '8080' : '3000');
+  var args = ['preview', 'app', 'run', BACKEND_DIR, '--host', serverAddr];
+
+  var backend = spawn('gcloud', args, {stdio: 'inherit'});
+  if (!watchFiles) {
+    process.on('exit', onExit);
+    serverAddr = 'http://' + serverAddr;
+    console.log('The site should now be available at: ' + serverAddr);
+    // give GAE server some time to start
+    setTimeout(opn.bind(null, serverAddr, null, null), 2000);
+    return;
+  }
+
+  browserSync.emitter.on('service:exit', onExit);
+  // give GAE server some time to start
+  setTimeout(browserSync.bind(null, {notify: false, proxy: serverAddr}), 2000);
+  watch();
+}
+
+// Create app.yaml from a template in dest directory.
+// prefix is the app root URL prefix. Defaults to '/io2015'.
+function generateAppYaml(dest, prefix, callback) {
+  gulp.src(BACKEND_DIR + '/app.yaml.template', {base: BACKEND_DIR})
+    .pipe($.replace(/\$PREFIX\$/g, prefix))
+    .pipe($.rename('app.yaml'))
+    .pipe(gulp.dest(dest))
+    .on('end', callback);
+}
+
 // Replace current app.yaml with the modified 'version' property.
 // appYamlPath arg is optional and defaults to BACKEND_APP_YAML.
 // Returns a function that restores original app.yaml content.
-function changeBackendGaeAppVersion(version, appYamlPath) {
+function changeAppYamlVersion(version, appYamlPath) {
   appYamlPath = appYamlPath || BACKEND_APP_YAML;
   var appYaml = fs.readFileSync(appYamlPath);
   fs.writeFileSync(appYamlPath, 'version: ' + version + '\n' + appYaml);

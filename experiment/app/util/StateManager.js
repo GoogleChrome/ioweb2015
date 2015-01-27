@@ -12,6 +12,7 @@ module.exports = (function() {
     var instrumentLookup = {};
     var MasterDataModel;
     var allData;
+    var firstLoadData;
 
     var self = {
       registerInstrument,
@@ -19,6 +20,7 @@ module.exports = (function() {
       getAllData,
       toURL,
       loadSerializedOrDefault,
+      reloadFirstLoadData,
       currentData: () => allData
     };
 
@@ -56,28 +58,52 @@ module.exports = (function() {
      * Try to load state from the URL, or default to hard-coded initial state.
      */
     function loadSerializedOrDefault() {
+      allData = null;
       var serializedData = window.location.href.match(/composition=([a-z0-9\(\)\_\.\-]+)/);
 
       if (serializedData) {
         var dataString = serializedData[1];
 
         // Returns false on bad data
-        allData = MasterDataModel.loadFromString(dataString);
+        loadSerializedData(dataString);
       } else if (window.experiment && ('function' === typeof window.experiment.customData)) {
         let dataJSON = window.experiment.customData();
-        allData = MasterDataModel.loadFromJSON(dataJSON);
+        loadJSONData(dataJSON);
       }
 
       if (!allData) {
-        var dataModels = {};
-
-        for (let i = 0; i < instruments.length; i++) {
-          let key = instruments[i].name;
-          dataModels[key] = instruments[i].model.getDefault();
-        }
-
-        allData = MasterDataModel.loadFromJSON(dataModels);
+        loadDefaultData();
       }
+
+      firstLoadData = allData.toURL();
+    }
+
+    /**
+     * Load serialized data.
+     */
+    function loadSerializedData(dataString) {
+      allData = MasterDataModel.loadFromString(dataString);
+    }
+
+    /**
+     * Load custom data.
+     */
+    function loadJSONData(dataJSON) {
+      allData = MasterDataModel.loadFromJSON(dataJSON);
+    }
+
+    /**
+     * Load custom data.
+     */
+    function loadDefaultData() {
+      var dataModels = {};
+
+      for (let i = 0; i < instruments.length; i++) {
+        let key = instruments[i].name;
+        dataModels[key] = instruments[i].model.getDefault();
+      }
+
+      allData = MasterDataModel.loadFromJSON(dataModels);
     }
 
     /**
@@ -89,6 +115,13 @@ module.exports = (function() {
           allData[name] = instrumentLookup[name].getter();
         }
       }
+    }
+
+    /**
+     *
+     */
+    function reloadFirstLoadData() {
+      loadSerializedData(firstLoadData);
     }
 
     /**

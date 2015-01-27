@@ -101,6 +101,10 @@ module.exports = (function() {
      * @param {Model} d - The new data model.
      */
     function loadData(d) {
+      if (currentTrack) {
+        audioManager.removeTrack(currentTrack);
+      }
+
       data = d;
 
       currentTrack = audioManager.createRecordedTrack(
@@ -320,9 +324,8 @@ module.exports = (function() {
 
     /**
      * Render loop.
-     * @param {number} delta - The animation delta.
      */
-    function render(delta) {
+    function render() {
       // no-op, all animations handled by tweens
     }
 

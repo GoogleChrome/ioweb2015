@@ -28,6 +28,7 @@ module.exports = (function() {
     var soundsByGUID;
     var soundLoops = {};
     var soundLoopsByGUID;
+    var removeVisibilityChangeListener;
 
     var AudioConstructor = window.AudioContext || window.webkitAudioContext;
     var audioContext = new AudioConstructor();
@@ -50,6 +51,7 @@ module.exports = (function() {
 
     var self = {
       init,
+      tearDown,
       analyser,
       audioContext,
       playbackBus,
@@ -63,9 +65,8 @@ module.exports = (function() {
       createTrack,
       createLoopingTrack,
       createRecordedTrack,
-      start,
-      stop,
       fadeOut,
+      fadeIn,
       willPlayback,
       render,
       playSoundImmediately,
@@ -85,8 +86,18 @@ module.exports = (function() {
     function init() {
       sequencer = new Sequencer(self);
 
-      addVisibilityChangeListener(start, stop);
+      removeVisibilityChangeListener = addVisibilityChangeListener(function() {
+        fadeIn(2.25, 0.75);
+      }, stop);
+
       unlockAudioOnMobile(audioContext);
+    }
+
+    /**
+     * Shut down everything.
+     */
+    function tearDown() {
+      removeVisibilityChangeListener();
     }
 
     /**
@@ -103,10 +114,12 @@ module.exports = (function() {
      * @param {number} delay - The fade in delay.
      */
     function fadeIn(duration, delay) {
+      start();
+
       return animate({ volume: 0 }, duration, {
         volume: DEFAULT_VOLUME,
+        delay: delay || 0,
         ease: Linear.easeNone,
-        delay: delay,
         onUpdate: function() {
           setVolume(this.target.volume);
         }
@@ -141,8 +154,6 @@ module.exports = (function() {
 
       isRunning = true;
       sequencer.start();
-
-      fadeIn(2.25, 0.75);
     }
 
     /**

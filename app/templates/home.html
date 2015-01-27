@@ -83,14 +83,14 @@
           <h3><i18n-msg msgid="io-description-card">I/O is two days of hands-on interaction with the latest technologies, inspirational talks and a few surprises in between.</i18n-msg></h3>
         </div>
         <div class="card-content">
-          <a href="schedule" data-ajax-link data-track-link="home-check-agenda"><core-icon icon="event"></core-icon> <i18n-msg msgid="registration-agenda">Check the agenda</i18n-msg></a>
+          <a href="schedule" data-ajax-link data-track-link="home-check-agenda"><core-icon icon="event" aria-hidden="true"></core-icon> <i18n-msg msgid="registration-agenda">Check the agenda</i18n-msg></a>
         </div>
       </div>
       <div class="card js-experiment-visualizer" layout vertical auto-vertical flex on-tap="{{playVideo}}">
         <div flex class="card__photo card__photo--recap"></div>
         <div class="card-content">
-          <img src="images/play-video-button.png" class="play__button">
-          <a href="#" data-track-link="home-watch-2014-recap-video"><core-icon icon="io:play-circle-fill"></core-icon> <i18n-msg msgid="watch-recap-video">Watch the 2014 I/O Recap Video</i18n-msg></a>
+          <img src="images/play-video-button.png" class="play__button" title="Play video" alt="Play video">
+          <a href="#" data-track-link="home-watch-2014-recap-video"><core-icon icon="io:play-circle-fill" aria-hidden="true"></core-icon> <i18n-msg msgid="watch-recap-video">Watch the 2014 I/O Recap Video</i18n-msg></a>
         </div>
       </div>
     </div>
@@ -129,7 +129,7 @@
           @googledevs<core-icon icon="io:post-twitter"></core-icon>
         </a>
       </div>
-      <div class="io__hash"></div>
+      <div class="io__hash" aria-label="I/O hash tag"></div>
       <div class="sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
         <div class="social-post">
           <header>

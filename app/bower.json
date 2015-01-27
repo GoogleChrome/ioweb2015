@@ -27,6 +27,7 @@
     "core-drawer-panel": "Polymer/core-drawer-panel#^0.5.4",
     "core-menu": "Polymer/core-menu#^0.5.4",
     "core-scroll-threshold": "Polymer/core-scroll-threshold#^0.5.4",
+    "core-tooltip": "Polymer/core-tooltip#^0.5.2",
     "google-apis": "GoogleWebComponents/google-apis#^0.4.3",
     "google-youtube": "GoogleWebComponents/google-youtube#^1.0.1",
     "i18n-msg": "ebidel/i18n-msg#^0.0.2",
@@ -38,6 +39,7 @@
     "paper-tabs": "Polymer/paper-tabs#^0.5.4",
     "paper-toast": "Polymer/paper-toast#^0.5.4",
     "polymer": "Polymer/polymer#^0.5.4",
-    "shed": "wibblymat/shed#84fe1e0cd15fd633db9356ce597e58e7483a83da"
+    "shed": "wibblymat/shed#84fe1e0cd15fd633db9356ce597e58e7483a83da",
+    "es6-promise-2.0.1.min": "https://es6-promises.s3.amazonaws.com/es6-promise-2.0.1.min.js"
   }
 }

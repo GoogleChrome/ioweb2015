@@ -82,7 +82,7 @@ module.exports = (function() {
     /**
      * On render, draw wave
      */
-    function render(delta) {
+    function render() {
       delay--;
 
       if (delay > 0) {
@@ -92,15 +92,14 @@ module.exports = (function() {
       delay = frameWait;
 
       getRun();
-      tickChase(delta);
+      tickChase();
       drawWave();
     }
 
     /**
      * Chase the target points.
-     * @param {number} delta - The animation delta.
      */
-    function tickChase(delta) {
+    function tickChase() {
       for (let i = 0; i < targetPoints.length; i++) {
         for (let j = 0; j < targetPoints[i].length; j += 2) {
           currentPoints[i][j] = targetPoints[i][j];
@@ -117,7 +116,7 @@ module.exports = (function() {
       yMax = canvas.height;
 
       getRun();
-      tickChase(0);
+      tickChase();
       drawWave();
     }
 

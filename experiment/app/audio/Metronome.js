@@ -23,7 +23,7 @@ module.exports = (function() {
      * @param {window} global - The global scope.
      */
     function workerInit(global) {
-      /* jshint worker: true, validthis: true */
+      /* jshint worker: true, validthis: true, sub: true */
       var timerID = null;
       var interval = 100;
 

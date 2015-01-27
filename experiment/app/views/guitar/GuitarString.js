@@ -79,7 +79,8 @@ module.exports = (function() {
       setSecondDot,
       getSecondDot,
       getPID: () => model.pid,
-      getModel: () => model
+      getModel: () => model,
+      tearDown: destroy
     };
 
     /**
@@ -131,14 +132,14 @@ module.exports = (function() {
         isplayingInteractionSound = true;
         audioManager.playSoundImmediately(sound, channel);
         onActivateCallback_(model.pid, sound);
-        window.setTimeout(resetisplayingInteractionSound, 400);
+        window.setTimeout(resetIsPlayingInteractionSound, 400);
       }
     }
 
     /**
      * Reset currently playing interaction sound.
      */
-    function resetisplayingInteractionSound() {
+    function resetIsPlayingInteractionSound() {
       isplayingInteractionSound = false;
     }
 
@@ -435,8 +436,8 @@ module.exports = (function() {
      * Destroy a string.
      */
     function destroy() {
-      world.removeBody(mouseColliderBody);
       removeEventListeners();
+      world.removeBody(mouseColliderBody);
       displayContainerCenter.removeChild(lineGraphicShadow);
       displayContainerCenter.removeChild(lineGraphic);
 
