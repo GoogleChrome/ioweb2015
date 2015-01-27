@@ -478,7 +478,7 @@ gulp.task('selenium-install', function(callback) {
   });
 });
 
-gulp.task('selenium', ['backend', 'selenium-install'], function(callback) {
+gulp.task('genereate-screenshots', ['backend', 'selenium-install'], function(callback) {
   var hostAndPort = 'localhost:9999';
   var startArgs = ['-d', APP_DIR, '-listen', hostAndPort];
   var webServer = spawn('bin/server', startArgs, {cwd: BACKEND_DIR, stdio: 'ignore'});
@@ -575,7 +575,8 @@ gulp.task('compare-screenshots', function(callback) {
       callback(error);
     } else {
       currentBranch = branch;
-      runSequence('checkout-master', 'selenium', 'restore-current-branch', 'selenium', callback);
+      runSequence('checkout-master', 'genereate-screenshots', 'restore-current-branch',
+        'genereate-screenshots', 'create-image-diffs', callback);
     }
   });
 });
@@ -622,7 +623,7 @@ gulp.task('create-image-diffs', function(callback) {
   Promise.all(diffPromises).then(
     function() {
       var diffFiles = glob.sync(diffsDirectory + '/*.png');
-      if (diffFiles) {
+      if (diffFiles.length) {
         $.util.log('Differences were found in:', diffFiles);
       } else {
         $.util.log('No differences were found.');
