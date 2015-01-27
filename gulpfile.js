@@ -21,6 +21,8 @@ var merge = require('merge-stream');
 var glob = require('glob');
 var sprintf = require("sprintf-js").sprintf;
 var webdriver = require('selenium-webdriver');
+var BlinkDiff = require('blink-diff');
+require('es6-promise').polyfill();
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
@@ -506,7 +508,7 @@ gulp.task('selenium', ['backend', 'selenium-install'], function(callback) {
     webdriver.promise.all(takeScreenshotPromises).then(
       killServers,
       function(e) {
-        console.error(e);
+        $.util.log(e);
         killServers();
       }
     );
@@ -576,4 +578,57 @@ gulp.task('compare-screenshots', function(callback) {
       runSequence('checkout-master', 'selenium', 'restore-current-branch', 'selenium', callback);
     }
   });
+});
+
+gulp.task('create-image-diffs', function(callback) {
+  var diffsDirectory = path.join(SCREENSHOTS_DIR, 'diffs');
+  del.sync(diffsDirectory);
+  fs.mkdirSync(diffsDirectory);
+
+  var filePaths = glob.sync(SCREENSHOTS_DIR + '/**/*.png');
+  var fileNameToPaths = {};
+  filePaths.forEach(function(filePath) {
+    var fileName = path.basename(filePath);
+    if (fileName in fileNameToPaths) {
+      fileNameToPaths[fileName].push(filePath);
+    } else {
+      fileNameToPaths[fileName] = [filePath];
+    }
+  });
+
+  var diffPromises = Object.keys(fileNameToPaths).map(function(fileName) {
+    return new Promise(function(resolve, reject) {
+      var paths = fileNameToPaths[fileName];
+      if (paths.length == 2) {
+        var diff = new BlinkDiff({
+          imageAPath: paths[0],
+          imageBPath: paths[1],
+          imageOutputPath: path.join(diffsDirectory, path.basename(paths[0])),
+          imageOutputLimit: BlinkDiff.OUTPUT_DIFFERENT
+        });
+        diff.run(function(error) {
+          if (error) {
+            $.util.log('Error while checking', fileName, error);
+            reject(error);
+          } else {
+            $.util.log('Completed checking', fileName);
+            resolve();
+          }
+        });
+      }
+    });
+  });
+
+  Promise.all(diffPromises).then(
+    function() {
+      var diffFiles = glob.sync(diffsDirectory + '/*.png');
+      if (diffFiles) {
+        $.util.log('Differences were found in:', diffFiles);
+      } else {
+        $.util.log('No differences were found.');
+      }
+      callback();
+    },
+    callback
+  );
 });
