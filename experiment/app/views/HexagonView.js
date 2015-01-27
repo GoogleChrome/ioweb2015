@@ -325,8 +325,10 @@ module.exports = (function() {
     /**
      * Render loop.
      */
-    function render() {
-      // no-op, all animations handled by tweens
+    function render(delta) {
+      for (let i = 0; i < hexagons.length; i++) {
+        hexagons[i].render(delta || 0);
+      }
     }
 
     /**

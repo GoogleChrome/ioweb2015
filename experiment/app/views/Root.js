@@ -22,7 +22,9 @@ var HexagonView = require('app/views/HexagonView');
 
 var logoSrc = require('url?limit=10000!app/images/io_white.png');
 
-module.exports = function(audioManager, stateManager) {
+const MOBILE_MAX = 767;
+
+module.exports = function RootView(audioManager, stateManager) {
   'use strict';
 
   var instrumentElements;
@@ -46,6 +48,8 @@ module.exports = function(audioManager, stateManager) {
 
   var didEnterRecordingModeCallback;
   var didExitRecordingModeCallback;
+
+  var isMobile = false;
 
   var self = {
     init,
@@ -365,8 +369,9 @@ module.exports = function(audioManager, stateManager) {
    * @return {Promise}
    */
   function closeView(view) {
-    enableAllInstancesInsideViewport();
     PIXI.AUTO_PREVENT_DEFAULT = false;
+
+    enableAllInstancesInsideViewport();
 
     if (didExitRecordingModeCallback) {
       didExitRecordingModeCallback();
@@ -530,6 +535,8 @@ module.exports = function(audioManager, stateManager) {
     var w = window.innerWidth;
     var h = window.innerHeight;
 
+    isMobile = w <= MOBILE_MAX;
+
     viewportElement.style.height = `${currentViewportDetails().height}px`;
 
     for (var i = 0; i < instrumentViews.length; i++) {
@@ -549,7 +556,11 @@ module.exports = function(audioManager, stateManager) {
   function onWindowScrollStartUnDebounced() {
     if (isExpanded) { return; }
 
-    enableAllInstances();
+    if (isMobile) {
+      disableAllInstancesExcept(null);
+    } else {
+      enableAllInstances();
+    }
 
     instrumentViews.forEach(e => e.ignoreInteraction());
   }
@@ -560,7 +571,11 @@ module.exports = function(audioManager, stateManager) {
   function onWindowScrollStopUnDebounced() {
     if (isExpanded) { return; }
 
-    disableViewsOutsideViewport();
+    if (isMobile) {
+      enableAllInstancesInsideViewport();
+    } else {
+      disableViewsOutsideViewport();
+    }
 
     instrumentViews.forEach(e => e.followInteraction());
   }

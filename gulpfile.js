@@ -385,7 +385,7 @@ function startGaeBackend(backendDir, appEnv, watchFiles, callback) {
   };
 
   var serverAddr = 'localhost:' + (watchFiles ? '8080' : '3000');
-  var args = ['preview', 'app', 'run', BACKEND_DIR, '--host', serverAddr];
+  var args = ['preview', 'app', 'run', backendDir, '--host', serverAddr];
 
   var backend = spawn('gcloud', args, {stdio: 'inherit'});
   if (!watchFiles) {

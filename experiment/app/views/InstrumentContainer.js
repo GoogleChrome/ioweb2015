@@ -14,7 +14,7 @@ module.exports = (function() {
   const CONTENT_ASPECT_RATIO_VERTICAL = 3 / 2;
   const CONTENT_HORIZONTAL_BUFFER_DESKTOP = 64;
   const CONTENT_HORIZONTAL_BUFFER_MOBILE = 24;
-  const CONTENT_VERTICAL_BUFFER_DESKTOP = 175;
+  const CONTENT_VERTICAL_BUFFER_DESKTOP = 150;
   const CONTENT_VERTICAL_BUFFER_MOBILE = 32;
   const MOBILE_MAX = 767;
 
@@ -38,6 +38,9 @@ module.exports = (function() {
     var wrapperElement;
 
     var elementToMimic = elementToMimic_;
+    var hasTopMargin = !elementToMimic.classList.contains('js-experiment-instrument--no-top-margin');
+    var hasBottomMargin = !elementToMimic.classList.contains('js-experiment-instrument--no-bottom-margin');
+
     var elemRect = { top: 0, left: 0, width: 0, height: 0 };
 
     var tweenData = { width: 0, height: 0, optimalWidth: 0, optimalHeight: 0 };
@@ -51,6 +54,8 @@ module.exports = (function() {
 
     var onActivateCallback_;
     var onBackCallback_;
+
+    var isMobile = false;
 
     var self = {
       init,
@@ -101,10 +106,10 @@ module.exports = (function() {
       renderer.updateTexture(recordIconImage.texture.baseTexture);
       renderer.updateTexture(recordCircle.texture.baseTexture);
       renderer.updateTexture(checkboxCircle.texture.baseTexture);
-      for (let i = 0; i <= recordText.length; i++) {
+      for (let i = 0; i < recordText.length; i++) {
         renderer.updateTexture(recordText[i].texture.baseTexture);
       }
-      for (let i = 0; i <= recordNumbers.length; i++) {
+      for (let i = 0; i < recordNumbers.length; i++) {
         renderer.updateTexture(recordNumbers[i].texture.baseTexture);
       }
 
@@ -451,9 +456,16 @@ module.exports = (function() {
         y: elemRect.top
       });
 
+      var targetY = elemRect.height / 2;
+      if (!isMobile && hasTopMargin && !hasBottomMargin) {
+        targetY += Math.floor(CONTENT_VERTICAL_BUFFER_DESKTOP / 3);
+      } else if (!isMobile && !hasTopMargin && hasBottomMargin) {
+        targetY -= Math.floor(CONTENT_VERTICAL_BUFFER_DESKTOP / 3);
+      }
+
       var moveCenter = animate.to(displayContainerCenter, duration, {
         x: elemRect.width / 2,
-        y: elemRect.height / 2
+        y: targetY
       });
 
       var [optimalWidth, optimalHeight] = optimalBounds(elemRect.width, elemRect.height);
@@ -523,7 +535,6 @@ module.exports = (function() {
       var optimalWidth;
       var optimalHeight;
 
-      var isMobile = containerWidth <= MOBILE_MAX;
       var horizontalBuffer = isMobile ?
           CONTENT_HORIZONTAL_BUFFER_MOBILE :
           CONTENT_HORIZONTAL_BUFFER_DESKTOP;
@@ -541,18 +552,43 @@ module.exports = (function() {
       }
 
       var relativeWidth = (containerWidth - (horizontalBuffer * 2));
-      var relativeHeight = (containerHeight - (verticalBuffer * 2));
+      var relativeHeight;
 
-      if (!isMobile) {
-        relativeWidth = Math.min(MAX_CONTENT_WIDTH, relativeWidth);
-      }
+      if (isMobile) {
+        relativeHeight = containerHeight - (verticalBuffer * 2);
 
-      if (isMobile && instrumentView.supportsPortrait) {
-        optimalWidth = relativeHeight * (1 / CONTENT_ASPECT_RATIO_VERTICAL);
-        optimalHeight = relativeHeight;
+        if (instrumentView.supportsPortrait) {
+          optimalWidth = relativeHeight * (1 / CONTENT_ASPECT_RATIO_VERTICAL);
+          optimalHeight = relativeHeight;
+        } else {
+          optimalWidth = relativeWidth;
+          optimalHeight = relativeWidth / CONTENT_ASPECT_RATIO_HORIZONTAL;
+        }
       } else {
-        optimalWidth = relativeWidth;
-        optimalHeight = relativeWidth / CONTENT_ASPECT_RATIO_HORIZONTAL;
+        relativeHeight = containerHeight;
+
+        if (hasTopMargin) {
+          relativeHeight -= verticalBuffer;
+        } else {
+          relativeHeight -= CONTENT_VERTICAL_BUFFER_MOBILE;
+        }
+
+        if (hasBottomMargin) {
+          relativeHeight -= verticalBuffer;
+        } else {
+          relativeHeight -= CONTENT_VERTICAL_BUFFER_MOBILE;
+        }
+
+        var minWidth = Math.min(MAX_CONTENT_WIDTH, relativeWidth);
+        var minHeight = relativeHeight;
+
+        if ((minWidth / minHeight) > CONTENT_ASPECT_RATIO_HORIZONTAL) {
+          optimalWidth = relativeHeight * CONTENT_ASPECT_RATIO_HORIZONTAL;
+          optimalHeight = relativeHeight;
+        } else {
+          optimalWidth = minWidth;
+          optimalHeight = minWidth / CONTENT_ASPECT_RATIO_HORIZONTAL;
+        }
       }
 
       return [optimalWidth, optimalHeight];
@@ -585,6 +621,7 @@ module.exports = (function() {
      */
     function resize(w, h) {
       if (!isReady) { return; }
+      isMobile = window.innerWidth <= MOBILE_MAX;
 
       var { top, left, width, height } = elementToMimic.getBoundingClientRect();
       var { x, y } = currentViewportDetails();
@@ -621,6 +658,13 @@ module.exports = (function() {
         displayContainer.hitArea = new PIXI.Rectangle(0, 0, w, h);
       } else {
         displayContainerCenter.position.y = Math.floor(elemRect.height / 2);
+
+        if (!isMobile && hasTopMargin && !hasBottomMargin) {
+          displayContainerCenter.position.y += Math.floor(CONTENT_VERTICAL_BUFFER_DESKTOP / 3);
+        } else if (!isMobile && !hasTopMargin && hasBottomMargin) {
+          displayContainerCenter.position.y -= Math.floor(CONTENT_VERTICAL_BUFFER_DESKTOP / 3);
+        }
+
         displayContainerCenter.position.x = Math.floor(elemRect.width / 2);
 
         setPos(elemRect.left, elemRect.top);
@@ -667,8 +711,8 @@ module.exports = (function() {
     function render(delta) {
       if (!isReady || isPaused) { return; }
 
-      renderer.render(stage);
       instrumentView.render(delta);
+      renderer.render(stage);
 
       if (isExpanded) {
         recordButton.render(delta);

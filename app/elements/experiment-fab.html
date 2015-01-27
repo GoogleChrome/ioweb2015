@@ -791,7 +791,7 @@ Main parent container for all of the fab elements.
 @element experiment-fab-container
 @blurb Main parent container for all of the fab elements.
 -->
-<polymer-element name="experiment-fab-container" attributes="mini mode playmode fixed" aria-label="Try the Chrome experiment">
+<polymer-element name="experiment-fab-container" attributes="mini mode playmode fixed recordmode" aria-label="Try the Chrome experiment">
   <template>
     <style>
       :host {
@@ -808,6 +808,9 @@ Main parent container for all of the fab elements.
         position: fixed;
         right: 32px;
         top: 30px;
+      }
+      :host([recordmode="recording"]) {
+        pointer-events: none;
       }
       core-tooltip {
         position: absolute;
@@ -899,6 +902,10 @@ Main parent container for all of the fab elements.
         showTooltips: {
           value: false,
           reflect: true
+        },
+        recordmode: {
+          value: 'notRecording',
+          reflect: true
         }
       },
 
@@ -978,21 +985,21 @@ Main parent container for all of the fab elements.
           var left = rect.left + (rect.width / 2);
           this.app.start('.js-experiment-instrument', '.js-experiment-visualizer', [left, top]);
           IOWA.Elements.ScrollContainer.addEventListener('scroll', this.boundOnScroll);
-        }, null, 300);
 
-        this.async(function() {
           this.playmode = 'playing';
           this.mode = 'active';
-        }, null, 2500);
+        }, null, 300);
 
         this.app.didEnterRecordingMode(function() {
           this.recording = true;
           this.miniFabs = false;
           this.shareVisible = false;
+          this.recordmode = 'recording';
         }.bind(this));
 
         this.app.didExitRecordingMode(function() {
           this.recording = false;
+          this.recordmode = 'notRecording';
         }.bind(this));
 
       },

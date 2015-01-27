@@ -242,7 +242,7 @@ limitations under the License.
         <!-- <span flex><i18n-msg msgid="io-in-photos">I/O in Photos</i18n-msg></span> -->
       </core-toolbar>
 
-      <header class="masthead {% template "mastheadBgClass" .%} js-experiment-instrument" layout vertical>
+      <header class="masthead {% template "mastheadBgClass" .%} js-experiment-instrument js-experiment-instrument--no-top-margin" layout vertical>
         <div class="masthead__ripple">
           <div class="masthead__ripple__content" id="masthead-ripple"></div>
         </div>
@@ -284,7 +284,7 @@ limitations under the License.
             <template id="template-masthead-container" ref="" bind>{% template "masthead" .%}</template>
           </div>
         </div>
-        <experiment-fab-container mini?="{{isPhoneSize}}" mode="{{mode}}" playmode="{{playmode}}"></experiment-fab-container>
+        <experiment-fab-container mini?="{{isPhoneSize}}" mode="{{mode}}" playmode="{{playmode}}" recordmode="{{recordmode}}"></experiment-fab-container>
       </header>
 
       <main class="io-main {{ {transitionIn: pageTransitioningIn, transitionOut: pageTransitioningOut} | tokenList }}" >

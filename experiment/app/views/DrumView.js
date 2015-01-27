@@ -371,8 +371,10 @@ module.exports = (function() {
     function render(delta) {
       if (renderPause) { return; }
 
-      renderBodies(delta);
-      world.step(1 / 60);
+      if (APPLICATION_STATE === 'expand') {
+        renderBodies(delta);
+        world.step(1 / 60);
+      }
     }
 
     /**

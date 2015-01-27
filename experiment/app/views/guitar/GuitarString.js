@@ -472,22 +472,6 @@ module.exports = (function() {
      * @param {number} delta - The delta.
      */
     function render(delta) {
-      renderBodies(delta);
-    }
-
-    /**
-     * Play the note associated with the string.
-     */
-    function playNote() {
-      capsuleBody.position[0] = points[1].x + 80;
-      capsuleBody.position[1] = points[1].y + 80;
-    }
-
-    /**
-     * Render bodies.
-     * @param {number} delta - The delta.
-     */
-    function renderBodies(delta) {
       if (!world) { return; }
 
       anchorPoint1.position.x = points[0].x;
@@ -497,6 +481,14 @@ module.exports = (function() {
 
       world.step(1 / 60, delta * 1000);
       renderStringBodies();
+    }
+
+    /**
+     * Play the note associated with the string.
+     */
+    function playNote() {
+      capsuleBody.position[0] = points[1].x + 80;
+      capsuleBody.position[1] = points[1].y + 80;
     }
 
     /**

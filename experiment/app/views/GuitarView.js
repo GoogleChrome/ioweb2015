@@ -540,16 +540,8 @@ module.exports = (function() {
      * @param {number} delta - The delta.
      */
     function render(delta) {
-      if (renderPause === false) {
-        renderBodies(delta);
-      }
-    }
+      if (renderPause) { return; }
 
-    /**
-     * Render the guitar strings on RAF.
-     * @param {number} delta - The delta.
-     */
-    function renderBodies(delta) {
       for (let pid in guitarStrings) {
         if (guitarStrings.hasOwnProperty(pid)) {
           guitarStrings[pid].render(delta);
