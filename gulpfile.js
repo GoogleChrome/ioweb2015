@@ -21,11 +21,11 @@ var merge = require('merge-stream');
 var glob = require('glob');
 var sprintf = require("sprintf-js").sprintf;
 var webdriver = require('selenium-webdriver');
-var tmp = require('tmp');
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
 var EXPERIMENT_DIR = 'experiment';
+var SCREENSHOTS_DIR = 'screenshots';
 var BACKEND_APP_YAML = BACKEND_DIR + '/app.yaml';
 
 var DIST_STATIC_DIR = 'dist';
@@ -496,9 +496,11 @@ gulp.task('selenium', ['backend', 'selenium-install'], function(callback) {
   var widths = [400, 900, 1200];
   var height = 9999;
 
-  tmp.dir(function(error, tempDirectoryPath) {
+  $.git.revParse({args: '--abbrev-ref HEAD'}, function(error, branch) {
+    var directory = path.join(SCREENSHOTS_DIR, branch);
+    fs.mkdirSync(directory);
     var takeScreenshotPromises = pages.map(function(page) {
-      return takeScreenshot(driver, page, widths, height, tempDirectoryPath);
+      return takeScreenshot(driver, page, widths, height, directory);
     });
 
     webdriver.promise.all(takeScreenshotPromises).then(
@@ -556,19 +558,22 @@ gulp.task('checkout-master', function(callback) {
 });
 
 var currentBranch;
-gulp.task('restore-current', function(callback) {
+gulp.task('restore-current-branch', function(callback) {
   $.git.checkout(currentBranch, function(error) {
     callback(error);
   });
 });
 
 gulp.task('compare-screenshots', function(callback) {
+  del.sync(SCREENSHOTS_DIR);
+  fs.mkdirSync(SCREENSHOTS_DIR);
+
   $.git.revParse({args: '--abbrev-ref HEAD'}, function(error, branch) {
     if (error) {
       callback(error);
     } else {
       currentBranch = branch;
-      runSequence('selenium', 'checkout-master', 'selenium', 'restore-current', callback);
+      runSequence('checkout-master', 'selenium', 'restore-current-branch', 'selenium', callback);
     }
   });
 });
