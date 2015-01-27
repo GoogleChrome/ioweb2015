@@ -21,6 +21,7 @@ var merge = require('merge-stream');
 var glob = require('glob');
 var sprintf = require("sprintf-js").sprintf;
 var webdriver = require('selenium-webdriver');
+var tmp = require('tmp');
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
@@ -488,21 +489,26 @@ gulp.task('selenium', ['backend', 'selenium-install'], function(callback) {
   var killServers = function() {
     webServer.kill();
     driver.quit();
+    callback();
   };
 
-  var pages = ['about'];//, 'home', 'offsite', 'onsite', 'registration', 'schedule'];
-  var widths = [1400];//, 900, 1200];
+  var pages = ['about', 'home', 'offsite', 'onsite', 'registration', 'schedule'];
+  var widths = [400, 900, 1200];
   var height = 9999;
 
-  var takeScreenshotPromises = pages.map(function(page) {
-    return widths.map(function(width) {
-      return takeScreenshot(driver, page, width, height);
+  tmp.dir(function(error, tempDirectoryPath) {
+    var takeScreenshotPromises = pages.map(function(page) {
+      return takeScreenshot(driver, page, widths, height, tempDirectoryPath);
     });
-  }).reduce(function(previous, current) {
-    return previous.concat(current);
-  }, []);
 
-  webdriver.promise.all(takeScreenshotPromises).then(killServers, killServers);
+    webdriver.promise.all(takeScreenshotPromises).then(
+      killServers,
+      function(e) {
+        console.error(e);
+        killServers();
+      }
+    );
+  });
 });
 
 function saveScreenshot(screenshotPath, base64Data) {
@@ -521,14 +527,24 @@ function saveScreenshot(screenshotPath, base64Data) {
   return defered.promise;
 }
 
-function takeScreenshot(driver, page, width, height) {
-  return driver.get('http://localhost:9999/' + page).then(function() {
-    return driver.manage().window().setSize(width, height);
+function takeScreenshot(driver, page, widths, height, directory) {
+  return driver.get('http://localhost:9999/io2015/' + page).then(function() {
+    return driver.manage().timeouts().setScriptTimeout(30000);
   }).then(function() {
-    return driver.takeScreenshot();
-  }).then(function(data) {
-    var screenshotPath = sprintf('/tmp/%s-%dx%d.png', page, width, height);
-    var base64Data = data.replace(/^data:image\/png;base64,/, '');
-    return saveScreenshot(screenshotPath, base64Data);
+    var script = 'document.addEventListener("page-transition-done", arguments[arguments.length - 1]);';
+    return driver.executeAsyncScript(script);
+  }).then(function() {
+    var saveScreenshotPromises = widths.map(function(width) {
+      return driver.manage().window().setSize(width, height).then(function() {
+        return driver.sleep(750);
+      }).then(function() {
+        return driver.takeScreenshot();
+      }).then(function(data) {
+        var screenshotPath = sprintf('%s/%s-%dx%d.png', directory, page, width, height);
+        var base64Data = data.replace(/^data:image\/png;base64,/, '');
+        return saveScreenshot(screenshotPath, base64Data);
+      });
+    });
+    return webdriver.promise.all(saveScreenshotPromises);
   });
 }
