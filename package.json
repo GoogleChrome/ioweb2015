@@ -22,6 +22,7 @@
     "gulp-csso": "^0.2.9",
     "gulp-flatten": "^0.0.4",
     "gulp-foreach": "0.1.0",
+    "gulp-git": "^0.5.6",
     "gulp-if": "^1.2.1",
     "gulp-imagemin": "^2.1.0",
     "gulp-jscs": "^1.4.0",

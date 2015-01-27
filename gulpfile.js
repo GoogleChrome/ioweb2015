@@ -548,3 +548,27 @@ function takeScreenshot(driver, page, widths, height, directory) {
     return webdriver.promise.all(saveScreenshotPromises);
   });
 }
+
+gulp.task('checkout-master', function(callback) {
+  $.git.checkout('master', function(error) {
+    callback(error);
+  });
+});
+
+var currentBranch;
+gulp.task('restore-current', function(callback) {
+  $.git.checkout(currentBranch, function(error) {
+    callback(error);
+  });
+});
+
+gulp.task('compare-screenshots', function(callback) {
+  $.git.revParse({args: '--abbrev-ref HEAD'}, function(error, branch) {
+    if (error) {
+      callback(error);
+    } else {
+      currentBranch = branch;
+      runSequence('selenium', 'checkout-master', 'selenium', 'restore-current', callback);
+    }
+  });
+});
