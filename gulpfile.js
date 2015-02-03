@@ -19,10 +19,15 @@ var reload = browserSync.reload;
 var opn = require('opn');
 var merge = require('merge-stream');
 var glob = require('glob');
+var sprintf = require("sprintf-js").sprintf;
+var webdriver = require('selenium-webdriver');
+var BlinkDiff = require('blink-diff');
+require('es6-promise').polyfill();
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
 var EXPERIMENT_DIR = 'experiment';
+var SCREENSHOTS_DIR = 'screenshots';
 var BACKEND_APP_YAML = BACKEND_DIR + '/app.yaml';
 
 var DIST_STATIC_DIR = 'dist';
@@ -458,4 +463,174 @@ gulp.task('generate-service-worker-dist', function(callback) {
       callback();
     });
   });
+});
+
+gulp.task('selenium-install', function(callback) {
+  var seleniumPath = path.join('node_modules', 'selenium-standalone', '.selenium', 'chromedriver');
+  fs.exists(seleniumPath, function(exists) {
+    if (exists) {
+      $.util.log(seleniumPath, 'already exists.');
+      callback();
+    } else {
+      require('selenium-standalone').install({
+        logger: $.util.log
+      }, callback);
+    }
+  });
+});
+
+gulp.task('genereate-screenshots', ['backend', 'selenium-install'], function(callback) {
+  var hostAndPort = 'localhost:9999';
+  var startArgs = ['-d', APP_DIR, '-listen', hostAndPort];
+  var webServer = spawn('bin/server', startArgs, {cwd: BACKEND_DIR, stdio: 'ignore'});
+
+  var chromeWebDriver = require('selenium-webdriver/chrome');
+  var chromeDriverBinary = glob.sync('node_modules/selenium-standalone/.selenium/chromedriver/*chromedriver*')[0];
+  var driverService = new chromeWebDriver.ServiceBuilder(chromeDriverBinary).build();
+  var driver = new chromeWebDriver.Driver(null, driverService);
+
+  var killServers = function() {
+    webServer.kill();
+    driver.quit();
+    callback();
+  };
+
+  var pages = ['about', 'home', 'offsite', 'onsite', 'registration', 'schedule'];
+  var widths = [400, 900, 1200];
+  var height = 9999;
+
+  $.git.revParse({args: '--abbrev-ref HEAD'}, function(error, branch) {
+    var directory = path.join(SCREENSHOTS_DIR, branch);
+    fs.mkdirSync(directory);
+    var takeScreenshotPromises = pages.map(function(page) {
+      return takeScreenshot(driver, page, widths, height, directory);
+    });
+
+    webdriver.promise.all(takeScreenshotPromises).then(
+      killServers,
+      function(e) {
+        $.util.log(e);
+        killServers();
+      }
+    );
+  });
+});
+
+function saveScreenshot(screenshotPath, base64Data) {
+  var defered = webdriver.promise.defer();
+
+  fs.writeFile(screenshotPath, base64Data, 'base64', function(error) {
+    if (error) {
+      $.util.log('Unable to save screenshot:', error);
+      defered.reject(error);
+    } else {
+      $.util.log('Saved screenshot to', screenshotPath);
+      defered.fulfill();
+    }
+  });
+
+  return defered.promise;
+}
+
+function takeScreenshot(driver, page, widths, height, directory) {
+  return driver.get('http://localhost:9999/io2015/' + page).then(function() {
+    return driver.manage().timeouts().setScriptTimeout(30000);
+  }).then(function() {
+    var script = 'document.addEventListener("page-transition-done", arguments[arguments.length - 1]);';
+    return driver.executeAsyncScript(script);
+  }).then(function() {
+    var saveScreenshotPromises = widths.map(function(width) {
+      return driver.manage().window().setSize(width, height).then(function() {
+        return driver.sleep(750);
+      }).then(function() {
+        return driver.takeScreenshot();
+      }).then(function(data) {
+        var screenshotPath = sprintf('%s/%s-%dx%d.png', directory, page, width, height);
+        var base64Data = data.replace(/^data:image\/png;base64,/, '');
+        return saveScreenshot(screenshotPath, base64Data);
+      });
+    });
+    return webdriver.promise.all(saveScreenshotPromises);
+  });
+}
+
+gulp.task('checkout-master', function(callback) {
+  $.git.checkout('master', function(error) {
+    callback(error);
+  });
+});
+
+var currentBranch;
+gulp.task('restore-current-branch', function(callback) {
+  $.git.checkout(currentBranch, function(error) {
+    callback(error);
+  });
+});
+
+gulp.task('compare-screenshots', function(callback) {
+  del.sync(SCREENSHOTS_DIR);
+  fs.mkdirSync(SCREENSHOTS_DIR);
+
+  $.git.revParse({args: '--abbrev-ref HEAD'}, function(error, branch) {
+    if (error) {
+      callback(error);
+    } else {
+      currentBranch = branch;
+      runSequence('checkout-master', 'genereate-screenshots', 'restore-current-branch',
+        'genereate-screenshots', 'create-image-diffs', callback);
+    }
+  });
+});
+
+gulp.task('create-image-diffs', function(callback) {
+  var diffsDirectory = path.join(SCREENSHOTS_DIR, 'diffs');
+  del.sync(diffsDirectory);
+  fs.mkdirSync(diffsDirectory);
+
+  var filePaths = glob.sync(SCREENSHOTS_DIR + '/**/*.png');
+  var fileNameToPaths = {};
+  filePaths.forEach(function(filePath) {
+    var fileName = path.basename(filePath);
+    if (fileName in fileNameToPaths) {
+      fileNameToPaths[fileName].push(filePath);
+    } else {
+      fileNameToPaths[fileName] = [filePath];
+    }
+  });
+
+  var diffPromises = Object.keys(fileNameToPaths).map(function(fileName) {
+    return new Promise(function(resolve, reject) {
+      var paths = fileNameToPaths[fileName];
+      if (paths.length == 2) {
+        var diff = new BlinkDiff({
+          imageAPath: paths[0],
+          imageBPath: paths[1],
+          imageOutputPath: path.join(diffsDirectory, path.basename(paths[0])),
+          imageOutputLimit: BlinkDiff.OUTPUT_DIFFERENT
+        });
+        diff.run(function(error) {
+          if (error) {
+            $.util.log('Error while checking', fileName, error);
+            reject(error);
+          } else {
+            $.util.log('Completed checking', fileName);
+            resolve();
+          }
+        });
+      }
+    });
+  });
+
+  Promise.all(diffPromises).then(
+    function() {
+      var diffFiles = glob.sync(diffsDirectory + '/*.png');
+      if (diffFiles.length) {
+        $.util.log('Differences were found in:', diffFiles);
+      } else {
+        $.util.log('No differences were found.');
+      }
+      callback();
+    },
+    callback
+  );
 });

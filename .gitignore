@@ -23,6 +23,7 @@ backend/app.yaml
 .tmp
 .DS_Store
 *.pyc
+screenshots
 
 # This should be generated as part of the gulp build process.
 app/service-worker.js
