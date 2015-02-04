@@ -19,13 +19,6 @@
     navigator.serviceWorker.register('service-worker.js', {
       scope: './'
     }).then(function(registration) {
-      // Check to see if there's an updated version of service-worker.js with new files to cache:
-      // https://slightlyoff.github.io/ServiceWorker/spec/service_worker/index.html#service-worker-registration-update-method
-      // Note: registration.update() is not yet widely implemented.
-      if (typeof registration.update == 'function') {
-        registration.update();
-      }
-
       registration.onupdatefound = function() {
         // The updatefound event implies that registration.installing is set; see
         // https://slightlyoff.github.io/ServiceWorker/spec/service_worker/index.html#service-worker-container-updatefound-event
