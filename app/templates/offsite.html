@@ -307,7 +307,7 @@
       IOWA.Elements.Template.closeExtendedMapSection = function(e, detail, sender) {
         this.scrollLock(false);
         // Make globe check its size when scrollbars are added to the page.
-        var globe = IOWA.Elements.Template.Main.querySelector('webgl-globe');
+        var globe = IOWA.Elements.Main.querySelector('webgl-globe');
         if (globe) {
           globe.canvasResized();
         }
@@ -332,7 +332,7 @@
           IOWA.Elements.Template.scrollLock(true);
 
           // Make globe check its size when scrollbars are removed from the page.
-          var globe = IOWA.Elements.Template.Main.querySelector('webgl-globe');
+          var globe = IOWA.Elements.Main.querySelector('webgl-globe');
           if (globe) {
             globe.canvasResized();
           }
