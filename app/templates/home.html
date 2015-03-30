@@ -205,43 +205,35 @@
     // Page-specific JS that runs when this page is loaded for the first time.
     function initPage() {
       var page = IOWA.Elements.Template.pages[IOWA.Elements.Template.selectedPage];
-      var socialPostsEndpoint = 'api/social';
-      var socialPostUpdateInterval = 30000; // 30 seconds
-      var updateSocialPostsTimeout;
+      var socialRefUrl;
 
       if (page.hasBeenLoaded) {
         return;
       }
 
-      function updateSocialPosts() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', socialPostsEndpoint);
-        // The request will be intercepted by the service worker, which will use a network-first
-        // policy to ensure that the service worker cache is initially ignored.
-        // But if the device is offline, it will return the previously cached content.
-        xhr.setRequestHeader('X-Cache-Only', 'false');
-
-        xhr.onload = function() {
-          if (this.status < 400) {
-            processSocialPosts(JSON.parse(this.response));
-            // Schedule another automatic update if we got a successful response back.
-            updateSocialPostsTimeout = window.setTimeout(updateSocialPosts,
-              socialPostUpdateInterval);
-          }
-        };
-
-        xhr.send();
+      function descendingSort(a, b) {
+        if (a < b) {
+          return 1;
+        }
+        if (a > b) {
+          return -1;
+        }
+        return 0;
       }
 
       function processSocialPosts(socialPosts) {
-        // Only show the first 3 posts.
-        IOWA.Elements.Template.socialPosts = socialPosts.slice(0, 3);
+        IOWA.Elements.Template.socialPosts = Object.keys(socialPosts).sort(descendingSort).map(function(key) {
+          return socialPosts[key];
+        });
       }
 
       page.load = function() {
-        IOWA.Request.cacheThenNetwork(socialPostsEndpoint, processSocialPosts, processSocialPosts);
-        // Set a timeout to fetch new posts after 30 seconds.
-        updateSocialPostsTimeout = window.setTimeout(updateSocialPosts, socialPostUpdateInterval);
+        IOWA.Firebase.refUrlPromise(IOWA.Firebase.datasets.SOCIAL).then(function(url) {
+          if (url) {
+            socialRefUrl = url;
+            IOWA.Firebase.firebaseOn(socialRefUrl, processSocialPosts, 3);
+          }
+        });
 
         // Reset template variables for when revisiting the page.
         IOWA.Elements.Template.homeGlobeVisible = false;
@@ -251,9 +243,8 @@
       };
 
       page.unload = function() {
-        if (updateSocialPostsTimeout) {
-          window.clearTimeout(updateSocialPostsTimeout);
-          updateSocialPostsTimeout = null;
+        if (socialRefUrl) {
+          IOWA.Firebase.firebaseOff(socialRefUrl);
         }
       };
 

@@ -15,6 +15,9 @@
  */
 
 (function() {
+  // Polyfill Promise() in browsers that don't support it natively.
+  ES6Promise.polyfill();
+
   function afterImports() {
     IOWA.Elements.init();
     IOWA.Router.init();
@@ -63,4 +66,13 @@
   } else {
     document.addEventListener('polymer-ready', afterImports);
   }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // Disconnect from Firebase's WebSocket when the current tab isn't visible.
+      Firebase.goOffline();
+    } else {
+      Firebase.goOnline();
+    }
+  });
 })();

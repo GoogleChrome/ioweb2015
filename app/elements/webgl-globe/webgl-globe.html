@@ -14,7 +14,6 @@ limitations under the License.
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/core-scroll-threshold/core-scroll-threshold.html">
 
-<script src="../../bower_components/es6-promise-2.0.1.min/index.js"></script>
 <script src="webgl-globe-namespace.js"></script>
 <script src="matrix4x4.js"></script>
 <script src="shader-program.js"></script>
@@ -76,7 +75,7 @@ Fired when the globe's webgl context has been initialized or it failed to initia
   </template>
   <script>
   (function() {
-    /* global IOWA, ES6Promise */
+    /* global IOWA */
     var ShaderProgram = IOWA.WebglGlobe.ShaderProgram;
     var Matrix4x4 = IOWA.WebglGlobe.Matrix4x4;
     var generateGeometry = IOWA.WebglGlobe.generateGeometry;
@@ -136,9 +135,6 @@ Fired when the globe's webgl context has been initialized or it failed to initia
      * @type {!Float32Array}
      */
     var tmpPicking4Vec = new Float32Array(4);
-
-    // Trigger es6-promise
-    ES6Promise.polyfill();
 
     Polymer({
       /**

@@ -58,6 +58,7 @@
     "polymer": "Polymer/polymer#^0.5.5",
     "shed": "wibblymat/shed#^1.0.0",
     "es6-promise-2.0.1.min": "https://es6-promises.s3.amazonaws.com/es6-promise-2.0.1.min.js",
+    "firebase": "~2.2.2",
     "web-animations-js": "web-animations/web-animations-js#^1.0.7"
   },
   "resolutions": {
