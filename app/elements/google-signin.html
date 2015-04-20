@@ -394,7 +394,7 @@ Fired when sign in fails for some reason.
           // Auto-refresh the token in 45min so it never expires. This is important
           // if the user has the page open for a long period of time. The token
           // should remain valid without a page reload.
-          var refreshTokenMsTimeout_ = (parseInt(this.user.tokenResponse.expires_in) - 15) * 1000;
+          var refreshTokenMsTimeout_ = ((parseInt(this.user.tokenResponse.expires_in) / 60) - 15) * 60 * 1000;
           this.async(this.onLoadAuth, null, refreshTokenMsTimeout_);
 
         }.bind(this));
