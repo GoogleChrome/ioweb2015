@@ -218,7 +218,7 @@
 
       </div>
     </section>
-    <div class="slide-up-delay">
+    <div id="signin-slide-up" class="slide-up-delay">
       <div class="page__filters" layout horizontal hidden?="{{!isPhoneSize || pages[selectedPage].selectedSubpage === 'myschedule'}}">
         <span flex>
           <paper-dropdown-menu>
@@ -274,16 +274,14 @@
 
     function toggleSignInCard(hide) {
       signinPropmt = signinPropmt || IOWA.Elements.Main.querySelector('#signin-prompt');
-      delaySection = document.querySelector('.active .slide-up-delay');
-
+      delaySection = document.querySelector('#signin-slide-up');
       var slideLength = Math.floor(signinPropmt.getBoundingClientRect().top -
                        delaySection.getBoundingClientRect().top);
-      if (hide) {
+      if (hide && slideLength) {
         IOWA.PageAnimation.play(IOWA.PageAnimation.topCardSlideOut(
             signinPropmt, delaySection, slideLength), function() {
           signinPropmt.style.visibility = 'hidden';
           signinPropmt.style.opacity = 0;
-
           delaySection.setAttribute('data-slide-length', slideLength);
         });
       } else {
