@@ -349,15 +349,10 @@ func diffEventData(a, b *eventData) *dataChanges {
 	return dc
 }
 
-// userSchedule returns a slice of session IDs bookmarked by a user.
-// It fetches data from Google Drive AppData folder associated with config.Google.Auth.Client.
+// userSchedule returns a slice of session IDs bookmarked by user uid.
 func userSchedule(c context.Context, uid string) ([]string, error) {
-	cred, err := getCredentials(c, uid)
+	data, err := getAppFolderData(c, uid)
 	if err != nil {
-		return nil, err
-	}
-	var data *appFolderData
-	if data, err = fetchAppFolderData(c, cred); err != nil {
 		return nil, err
 	}
 	return data.Bookmarks, nil
@@ -365,37 +360,26 @@ func userSchedule(c context.Context, uid string) ([]string, error) {
 
 // bookmarkSession adds session sid to the bookmarks of user uid.
 func bookmarkSession(c context.Context, uid, sid string) ([]string, error) {
-	cred, err := getCredentials(c, uid)
+	data, err := getAppFolderData(c, uid)
 	if err != nil {
 		return nil, err
 	}
-	var data *appFolderData
-	if data, err = fetchAppFolderData(c, cred); err != nil {
-		return nil, err
-	}
-
 	// check for duplicates
 	sort.Strings(data.Bookmarks)
 	i := sort.SearchStrings(data.Bookmarks, sid)
 	if i < len(data.Bookmarks) && data.Bookmarks[i] == sid {
 		return data.Bookmarks, nil
 	}
-
 	data.Bookmarks = append(data.Bookmarks, sid)
-	return data.Bookmarks, storeAppFolderData(c, cred, data)
+	return data.Bookmarks, storeAppFolderData(c, uid, data)
 }
 
 // unbookmarkSession is the opposite of bookmarkSession.
 func unbookmarkSession(c context.Context, uid, sid string) ([]string, error) {
-	cred, err := getCredentials(c, uid)
+	data, err := getAppFolderData(c, uid)
 	if err != nil {
 		return nil, err
 	}
-	var data *appFolderData
-	if data, err = fetchAppFolderData(c, cred); err != nil {
-		return nil, err
-	}
-
 	// remove id in question w/o sorting
 	list := data.Bookmarks[:0]
 	for _, item := range data.Bookmarks {
@@ -407,7 +391,6 @@ func unbookmarkSession(c context.Context, uid, sid string) ([]string, error) {
 	if len(list) == len(data.Bookmarks) {
 		return data.Bookmarks, nil
 	}
-
 	data.Bookmarks = list
-	return data.Bookmarks, storeAppFolderData(c, cred, data)
+	return data.Bookmarks, storeAppFolderData(c, uid, data)
 }

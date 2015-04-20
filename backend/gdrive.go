@@ -14,11 +14,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-const searchDriveFiles = "'appfolder' in parents and title = '%s' and trashed = false"
+const (
+	searchDriveFiles = "'appfolder' in parents and title = '%s' and trashed = false"
+
+	// appDataCacheTimeout is how long until cached appdata is expired.
+	appDataCacheTimeout = 4 * time.Hour
+)
 
 type appFolderData struct {
 	// id indicates whether the file exists
-	id string
+	Id string `json:"id"`
 
 	GCMKey    string   `json:"gcm_key"`
 	Bookmarks []string `json:"starred_sessions"`
@@ -26,6 +31,56 @@ type appFolderData struct {
 	Feedback  []string `json:"feedback_submitted_sessions"`
 }
 
+// getAppFolderData retrieves AppFolder data for user uid either from cache or network.
+// User credentials are required on network requests.
+func getAppFolderData(c context.Context, uid string) (*appFolderData, error) {
+	data, err := appFolderDataFromCache(c, uid)
+	if err == nil {
+		return data, nil
+	}
+	cred, err := getCredentials(c, uid)
+	if err != nil {
+		return nil, err
+	}
+	data, err = fetchAppFolderData(c, cred)
+	if err != nil {
+		return nil, err
+	}
+	cacheAppFolderData(c, uid, data)
+	return data, nil
+}
+
+// appFolderDataFromCache retrieves AppFolder cached data.
+func appFolderDataFromCache(c context.Context, uid string) (*appFolderData, error) {
+	b, err := cache.get(c, appFolderCacheKey(uid))
+	if err != nil {
+		return nil, err
+	}
+	data := &appFolderData{}
+	return data, json.Unmarshal(b, data)
+}
+
+// cacheAppFolderData updates cached version of AppFolder data.
+// It will retry a few times on cache errors before giving up.
+func cacheAppFolderData(c context.Context, uid string, data *appFolderData) error {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	k := appFolderCacheKey(uid)
+	for r := 1; r < 4; r++ {
+		err = cache.set(c, k, b, appDataCacheTimeout)
+		if err == nil {
+			return nil
+		}
+		errorf(c, "cacheAppFolderData(%s): %v; retry = %d", uid, err, r)
+	}
+	errorf(c, "cacheAppFolderData(%s): giving up")
+	return err
+}
+
+// fetchAppFolderData retrieves AppFolder data using Google Drive API.
+// It fetches data from Google Drive AppData folder associated with config.Google.Auth.Client.
 func fetchAppFolderData(c context.Context, cred *oauth2Credentials) (*appFolderData, error) {
 	// list files in 'appfolder' with title 'user_data.json'
 	// TODO: cache appdata file ID so not to query every time.
@@ -84,11 +139,18 @@ func fetchAppFolderData(c context.Context, cred *oauth2Credentials) (*appFolderD
 		return nil, err
 	}
 	defer res.Body.Close()
-	data.id = fileID
+	data.Id = fileID
 	return data, json.NewDecoder(res.Body).Decode(data)
 }
 
-func storeAppFolderData(c context.Context, cred *oauth2Credentials, data *appFolderData) error {
+// storeAppFolderData saves appdata using Google Drive API and updates cached content.
+// It also notifies iosched app about the updates.
+func storeAppFolderData(c context.Context, uid string, data *appFolderData) error {
+	// TODO: make cred be available in context c.
+	cred, err := getCredentials(c, uid)
+	if err != nil {
+		return err
+	}
 	// request payload
 	var body bytes.Buffer
 	mp := multipart.NewWriter(&body)
@@ -119,9 +181,9 @@ func storeAppFolderData(c context.Context, cred *oauth2Credentials, data *appFol
 
 	// construct HTTP request
 	m, url := "POST", config.Google.Drive.UploadURL
-	if data.id != "" {
+	if data.Id != "" {
 		m = "PUT"
-		url += "/" + data.id
+		url += "/" + data.Id
 	}
 	r, err := http.NewRequest(m, url+"?uploadType=multipart", &body)
 	if err != nil {
@@ -139,10 +201,24 @@ func storeAppFolderData(c context.Context, cred *oauth2Credentials, data *appFol
 		return errors.New("storeAppFolderData: " + res.Status)
 	}
 
+	// If the above request to gdrive API succeds but the cache fails,
+	// we have no easy way to rollback and thus there's no point in checking
+	// for returned error value.
+	// In the worst case scenario users will see stale data
+	// for a max of appDataCacheTimeout.
+	cacheAppFolderData(c, uid, data)
+
 	// TODO: ping iosched about updated file
 	return nil
 }
 
+// appFolderCacheKey returns a cache key for a user uid.
+func appFolderCacheKey(uid string) string {
+	return "appdata:" + uid
+}
+
+// typeMimeHeader returns Content-Type header in MIMEHeader format,
+// set to provided contentType.
 func typeMimeHeader(contentType string) textproto.MIMEHeader {
 	h := make(textproto.MIMEHeader)
 	h.Set("Content-Type", contentType)
