@@ -327,7 +327,7 @@ Fired when sign in fails for some reason.
     signOut: function() {
       // Removed. By revoking the token, the backend's refresh token gets revoked
       // too. This means users won't receive notifications.
-      //this.disconnect(); // revoke tokens
+      this.disconnect(); // revoke tokens
 
       // Note: signOut() does not work from localhost: stackoverflow.com/a/22112771/274673
       gapi.auth.signOut(); // Call after tokens are revoked.
