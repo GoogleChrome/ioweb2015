@@ -18,6 +18,9 @@ var browserSync = require('browser-sync');
 var opn = require('opn');
 var merge = require('merge-stream');
 var glob = require('glob');
+var CacheBuster = require('gulp-cachebust');
+var vinylPaths = require('vinyl-paths');
+var Promise = require('es6-promise').Promise;
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
@@ -399,10 +402,72 @@ gulp.task('backend:test', ['backend:config'], function(cb) {
   }
 });
 
+gulp.task('cache-bust', function(cb) {
+  var checksumLength = 32;
+  var imageGlobs = [
+    // TODO: Inlcude elements/webgl-globe, but the JS code that resolves the shader/texture paths
+    // needs to be updated first.
+    DIST_STATIC_DIR + '/app/images/**/*.*'
+  ];
+  var cssAndJsGlobs = [
+    DIST_STATIC_DIR + '/app/{scripts,bower_components}/**/*.js',
+    DIST_STATIC_DIR + '/app/styles/**/*.css'
+  ];
+  var elementsGlob = [DIST_STATIC_DIR + '/app/elements/*.*'];
+  var destDir = DIST_STATIC_DIR + '/app';
+
+  var buster = new CacheBuster({checksumLength: checksumLength});
+  return renameResources(buster, imageGlobs, destDir + '/images/')
+    .then(function() {
+      return updateReferences(buster, [
+        DIST_STATIC_DIR + '/app/**/*.{html,js,css,json}',
+        DIST_STATIC_DIR + '/backend/template.go'
+      ], destDir);
+    })
+    .then(function() {
+      buster = new CacheBuster({checksumLength: checksumLength});
+      return renameResources(buster, cssAndJsGlobs, destDir);
+    })
+    .then(function() {
+      return updateReferences(buster, [DIST_STATIC_DIR + '/app/**/*.{html,json}'], destDir);
+    }).then(function() {
+      buster = new CacheBuster({checksumLength: checksumLength});
+      return renameResources(buster, elementsGlob, destDir + '/elements/');
+    }).then(function() {
+      return updateReferences(buster, [DIST_STATIC_DIR + '/app/**/*.{html,json}'], destDir);
+    });
+});
+
+function renameResources(buster, resourcesGlobs, destDir) {
+  return new Promise(function(resolve, reject) {
+    var vp = vinylPaths();
+
+    gulp.src(resourcesGlobs, {base: destDir})
+      .pipe(vp)
+      .pipe(buster.resources())
+      .pipe(gulp.dest(destDir))
+      .on('end', function() {
+        // Delete the original files after we've written the renamed versions to disk.
+        del(vp.paths, resolve);
+      })
+      .on('error', reject);
+  });
+}
+
+function updateReferences(buster, referencesGlobs, destDir) {
+  return new Promise(function(resolve, reject) {
+    gulp.src(referencesGlobs, {base: destDir})
+      .pipe(buster.references())
+      .pipe(gulp.dest(destDir))
+      .on('end', resolve)
+      .on('error', reject);
+  });
+}
+
 gulp.task('default', ['clean'], function(cb) {
   runSequence('copy-experiment-to-site', 'sass', 'vulcanize',
               ['concat-and-uglify-js', 'images', 'copy-assets', 'copy-backend'],
-              'generate-service-worker-dist', 'sitemap', cb);
+              'cache-bust', 'generate-service-worker-dist', 'sitemap', cb);
 });
 
 gulp.task('bower', function(cb) {
@@ -617,7 +682,9 @@ gulp.task('generate-service-worker-dev', ['sass'], function(callback) {
 gulp.task('generate-service-worker-dist', function(callback) {
   var distDir = DIST_STATIC_DIR + '/' + APP_DIR;
   del.sync([distDir + '/service-worker.js']);
-  var importScripts = ['scripts/shed-scripts.js'];
+  var importScripts = glob.sync(DIST_STATIC_DIR + '/app/scripts/shed-scripts*.js').map(function(f) {
+    return f.replace(distDir + '/', '');
+  });
 
   generateServiceWorker(distDir, true, importScripts, function(error, serviceWorkerFileContents) {
     if (error) {
