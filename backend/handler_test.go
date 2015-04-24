@@ -324,7 +324,36 @@ func TestHandleAuth(t *testing.T) {
 	}
 }
 
-func TestServeUserScheduleExpired(t *testing.T) {
+func TestServeUserScheduleCache(t *testing.T) {
+	defer resetTestState(t)
+	defer preserveConfig()()
+	config.Google.Drive.FilesURL = "invalid"
+
+	c := newContext(newTestRequest(t, "GET", "/dummy", nil))
+	cache.flush(c)
+	cacheAppFolderData(c, testUserID, &appFolderData{
+		Bookmarks: []string{"sid"},
+	})
+
+	r := newTestRequest(t, "GET", "/api/v1/user/schedule", nil)
+	r.Header.Set("authorization", bearerHeader+testIDToken)
+	w := httptest.NewRecorder()
+	serveUserSchedule(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("w.Code = %d; want 200\nResponse: %s", w.Code, w.Body.String())
+	}
+
+	var list []string
+	if err := json.Unmarshal(w.Body.Bytes(), &list); err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 1 || list[0] != "sid" {
+		t.Errorf("list = %v; want ['sid']", list)
+	}
+}
+
+func TestServeUserScheduleAndExpiredToken(t *testing.T) {
 	if !isGAEtest {
 		t.Skipf("not implemented yet; isGAEtest = %v", isGAEtest)
 	}
@@ -396,6 +425,7 @@ func TestServeUserScheduleExpired(t *testing.T) {
 	r := newTestRequest(t, "GET", "/api/v1/user/schedule", nil)
 	r.Header.Set("Authorization", "Bearer "+testIDToken)
 
+	cache.flush(c)
 	serveUserSchedule(w, r)
 
 	if w.Code != http.StatusOK {
@@ -407,6 +437,14 @@ func TestServeUserScheduleExpired(t *testing.T) {
 	}
 	if len(list) != 1 || list[0] != "dummy-session-id" {
 		t.Errorf("list = %v; want ['dummy-session-id']\nResponse: %s", list, w.Body.String())
+	}
+
+	ad, err := appFolderDataFromCache(c, testUserID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ad.Bookmarks) != 1 || ad.Bookmarks[0] != "dummy-session-id" {
+		t.Errorf("ad.Bookmarks = %v; want ['dummy-session-id']", ad.Bookmarks)
 	}
 
 	cred, err := getCredentials(c, testUserID)
@@ -541,6 +579,7 @@ func TestHandleUserSchedulePut(t *testing.T) {
 	r := newTestRequest(t, "PUT", "/api/v1/user/schedule/new-session-id", nil)
 	r.Header.Set("Authorization", "Bearer "+testIDToken)
 
+	cache.flush(c)
 	handleUserBookmarks(w, r)
 
 	if w.Code != http.StatusOK {
@@ -559,6 +598,14 @@ func TestHandleUserSchedulePut(t *testing.T) {
 	}
 	if len(list) != 1 || list[0] != "new-session-id" {
 		t.Errorf("list = %v; want ['new-session-id']", list)
+	}
+
+	ad, err := appFolderDataFromCache(c, cred.userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ad.Bookmarks) != 1 || ad.Bookmarks[0] != "new-session-id" {
+		t.Errorf("ad.Bookmarks = %v; want ['new-session-id']", ad.Bookmarks)
 	}
 }
 
@@ -639,6 +686,7 @@ func TestHandleUserScheduleDelete(t *testing.T) {
 	r := newTestRequest(t, "DELETE", "/api/v1/user/schedule/one-session", nil)
 	r.Header.Set("Authorization", "Bearer "+testIDToken)
 
+	cache.flush(c)
 	handleUserBookmarks(w, r)
 
 	if w.Code != http.StatusOK {
@@ -657,6 +705,14 @@ func TestHandleUserScheduleDelete(t *testing.T) {
 	}
 	if len(list) != 1 || list[0] != "two-session" {
 		t.Errorf("list = %v; want ['two-session']", list)
+	}
+
+	ad, err := appFolderDataFromCache(c, cred.userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ad.Bookmarks) != 1 || ad.Bookmarks[0] != "two-session" {
+		t.Errorf("ad.Bookmarks = %v; want ['two-session']", ad.Bookmarks)
 	}
 }
 
