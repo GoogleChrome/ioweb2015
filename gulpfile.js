@@ -10,7 +10,7 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var pagespeed = require('psi');
 var del = require('del');
-var i18n_replace = require('./gulp_scripts/i18n_replace');
+// var i18n_replace = require('./gulp_scripts/i18n_replace');
 var generateServiceWorker = require('./gulp_scripts/generate_service_worker');
 var runSequence = require('run-sequence');
 var argv = require('yargs').argv;
@@ -18,6 +18,7 @@ var browserSync = require('browser-sync');
 var opn = require('opn');
 var merge = require('merge-stream');
 var glob = require('glob');
+var request = require('request-promise');
 
 var APP_DIR = 'app';
 var BACKEND_DIR = 'backend';
@@ -704,21 +705,53 @@ gulp.task('screenshots', ['backend'], function(callback) {
 });
 
 gulp.task('sitemap', function() {
-  gulp.src(APP_DIR + '/templates/!(layout_|error).html', {read: false})
-    .pipe($.rename(function(path) {
-      if (path.basename === 'home') {
-        path.basename = '/'; // homepage is served from root.
-      }
-      path.extname = ''; // remove .html from URLs.
-    }))
-    .pipe($.sitemap({
-      siteUrl: PROD_ORIGIN + URL_PREFIX,
-      changefreq: 'weekly',
-      spacing: '  ',
-      mappings: [{
-        pages: [''], // homepage should be more frequent
-        changefreq: 'daily'
-      }]
-    }))
-    .pipe(gulp.dest(APP_DIR));
+
+  var sessionDeepLinks = [];
+  var siteUrl = PROD_ORIGIN + URL_PREFIX;
+
+  // Fetch the latest schedule information to add the deep schedule links to
+  // the sitemap.
+  request(siteUrl + '/api/v1/schedule').then(function(body) {
+    var sessions = JSON.parse(body).sessions || [];
+    if (sessions.length) {
+      sessionDeepLinks = sessions.map(function(s) {
+        return siteUrl + '/schedule?sid=' + s.id;
+      });
+    }
+  }).finally(function() {
+    gulp.src([APP_DIR + '/templates/!(layout_|error).html'], {read: false})
+      .pipe($.rename(function(path) {
+        if (path.basename === 'home') {
+          path.basename = '/'; // homepage is served from root.
+        }
+        path.extname = ''; // remove .html from URLs.
+      }))
+      .pipe($.sitemap({
+        siteUrl: siteUrl,
+        changefreq: 'weekly',
+        spacing: '  ',
+        mappings: [{
+          pages: [''], // homepage should be more frequent
+          changefreq: 'daily'
+        }]
+      }))
+      .pipe($.insert.transform(function(contents) {
+        var entries = '';
+        var now = (new Date()).toISOString();
+        sessionDeepLinks.forEach(function(url) {
+          entries += '\
+  <url>\n\
+    <loc>' + url + '</loc>\n\
+    <lastmod>' + now + '</lastmod>\n\
+    <changefreq>daily</changefreq>\n\
+  </url>\n';
+        });
+
+        var END_TOKEN = '</urlset>';
+
+        return contents.replace(END_TOKEN, '') + entries  + END_TOKEN;
+      }))
+      .pipe(gulp.dest(APP_DIR));
+  });
+
 });
