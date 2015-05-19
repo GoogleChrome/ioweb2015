@@ -28,7 +28,7 @@
     "sizes": "192x192",
     "type": "image/png"
   }],
-  "chrome_related_applications": [{
+  "related_applications": [{
     "platform": "web"
   }, {
     "platform": "android",
