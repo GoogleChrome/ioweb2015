@@ -266,6 +266,26 @@ IOWA.Util = IOWA.Util || (function() {
     IOWA.Analytics.trackError(location, error);
   };
 
+  /**
+   * Returns the target element that was clicked/tapped.
+   * @param {Event} e The click/tap event.
+   * @param {string} tagName The element tagName to stop at.
+   */
+  var getEventSender = function(e, tagName) {
+    var path = Polymer.dom(e).path;
+
+    var target = null;
+    for (var i = 0; i < path.length; ++i) {
+      var el = path[i];
+      if (el.localName === tagName) {
+        target = el;
+        break;
+      }
+    }
+
+    return target;
+  };
+
   return {
     createDeferred: createDeferred,
     isFF: isFF,
@@ -280,6 +300,7 @@ IOWA.Util = IOWA.Util || (function() {
     getURLParameter: getURLParameter,
     getStaticBaseURL: getStaticBaseURL,
     setSearchParam: setSearchParam,
+    getEventSender: getEventSender,
     removeSearchParam: removeSearchParam,
     resizeRipple: resizeRipple,
     reportError: reportError

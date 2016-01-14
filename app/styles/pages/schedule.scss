@@ -16,12 +16,12 @@
 
 $name: 'page-schedule';
 
-@import '../base/_vars';
-@import '../base/_layout';
-@import '../base/_color';
-@import '../base/_breakpoints';
-@import '../base/_shadow';
-@import '../base/_typography';
+@import '../base/vars';
+@import '../base/layout';
+@import '../base/color';
+@import '../base/breakpoints';
+@import '../base/shadow';
+@import '../base/typography';
 
 
 ##{$name} {
@@ -51,7 +51,7 @@ $name: 'page-schedule';
     margin: $tabletKeyline;;
     padding: 0;
     border: none;
-    core-menu {
+    iron-menu {
       margin: 0;
     }
     paper-item {
@@ -104,7 +104,7 @@ $name: 'page-schedule';
   margin-bottom: $tabletKeyline;
 }
 
-core-icon[icon="schedule"] {
+iron-icon[icon="schedule"] {
   margin-right: 40px;
 }
 
@@ -160,7 +160,7 @@ core-icon[icon="schedule"] {
     font-weight: 400;
   }
 
-  core-menu {
+  iron-menu {
     margin: 0;
   }
 
@@ -199,7 +199,7 @@ core-icon[icon="schedule"] {
     transition: background-color .3s linear .1s, color .3s linear .1s;
     border-radius: 50%;
 
-    &.core-selected {
+    &.iron-selected {
       background-color: $color-bluegrey-700;
       color: #fff;
     }
@@ -216,7 +216,8 @@ core-icon[icon="schedule"] {
     color: $color-text;
   }
 
-  .rate__icon-empty::shadow core-icon {
+// TODO: update for polymer 1.0
+  .rate__icon-empty::shadow iron-icon {
     visibility: hidden;
   }
 
@@ -229,12 +230,21 @@ core-icon[icon="schedule"] {
 }
 
 .session__detail {
+  .scrollable {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    position: relative; // So back arrow scrolls away.
+  }
+}
+
+.session__detail {
   $lineHeight: 32px;
 
   color: $color-link-grey;
   font-size: 14px;
-
-  top: 0;
+  max-width: $tablet-breakpoint-min;
+  position: fixed;
 
   paper-fab {
     background: #fff;
@@ -244,13 +254,13 @@ core-icon[icon="schedule"] {
     bottom: calc(-40px/2);
 
     &.active {
-      color: white;
-      background-color: $color-cyan-400;
+      color: white !important;
+      background-color: $color-cyan-400 !important;
     }
 
     &[disabled] {
-      background-color: $color-light-grey-border;
-      color: $color-gray;
+      background-color: $color-light-grey-border !important;
+      color: $color-gray !important;
     }
   }
   paper-progress {
@@ -328,7 +338,7 @@ core-icon[icon="schedule"] {
       top: 50px;
     }
   }
-  core-image,
+  iron-image,
   .play__button__container {
     transition: opacity 350ms cubic-bezier(0,0,0.2,1);
   }

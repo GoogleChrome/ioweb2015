@@ -57,7 +57,7 @@ IOWA.Schedule = (function() {
 
   /**
    * Fetches the I/O schedule data. If the schedule has not been loaded yet, a
-   * network request is kicked off. To wait on the schedule without causing a
+   * network request is kicked off. To wait on the schedule without
    * triggering a request for it, use `schedulePromise`.
    * @return {Promise} Resolves with response schedule data.
    */

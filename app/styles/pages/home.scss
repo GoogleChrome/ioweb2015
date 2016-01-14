@@ -16,11 +16,11 @@
 
 $name: 'page-home';
 
-@import '../base/_vars';
-@import '../base/_layout';
-@import '../base/_color';
-@import '../base/_breakpoints';
-@import '../base/_typography';
+@import '../base/vars';
+@import '../base/layout';
+@import '../base/color';
+@import '../base/breakpoints';
+@import '../base/typography';
 
 
 ##{$name} {
@@ -70,7 +70,7 @@ $name: 'page-home';
       margin-bottom: 15px;
     }
 
-    core-icon {
+    iron-icon {
       margin-left: 5px;
     }
   }
@@ -127,7 +127,7 @@ $name: 'page-home';
   }
 
   .card__video {
-    core-image {
+    iron-image {
       border-radius: inherit;
       width: 100%;
     }

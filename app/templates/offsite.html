@@ -1,59 +1,136 @@
 {% define "title" %}Attend Offsite{% end %}
 
-{% define "mastheadBgClass" %}bg-photo{% end %}
+{% define "mastheadBgClass" %}bg-cyan{% end %}
 
 {% define "masthead" %}
-  <div class="photo__masthead photo__masthead--fullbleed" fit>
-  <div class="card__photo--stage"></div>
+  <!-- <div class="photo__masthead photo__masthead--fullbleed" fit>
+  <div class="card__photo--stage"></div> -->
+  <h1><i18n-msg msgid="attend-offsite">Attend Offsite</i18n-msg></h1>
 </div>
 {% end %}
 
 {% define "content" %}
-  <core-toolbar class="navbar__overlay navbar__overlay--video" aria-hidden="{{!fullscreenVideoActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closeVideoSection}}" aria-label="Close video" tabindex="{{fullscreenVideoActive ? 0 : -1}}"></paper-icon-button>
-    <span flex><i18n-msg msgid="ioextendedwatch">Watch the 2014 I/O Extended recap video</i18n-msg></span>
-  </core-toolbar>
+  <paper-toolbar class="navbar__overlay navbar__overlay--video" aria-hidden$="{{!fullscreenVideoActive}}" fit>
+    <paper-icon-button icon="arrow-back" on-tap="closeVideoSection"
+        aria-label="Close video"
+        tabindex="{{_enableTabIndex(fullscreenVideoActive)}}"></paper-icon-button>
+    <span flex>Watch the 2014 I/O Extended recap video</span>
+  </paper-toolbar>
 
-  <core-toolbar class="navbar__overlay navbar__overlay--gallery" aria-hidden="{{!photoGalleryActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closeExtendedPhotoGallery}}" aria-label="Close gallery" tabindex="{{photoGalleryActive ? 0 : -1}}"></paper-icon-button>
+  <paper-toolbar class="navbar__overlay navbar__overlay--gallery"
+                 aria-hidden$="{{!photoGalleryActive}}" fit>
+    <paper-icon-button icon="arrow-back" on-tap="closeExtendedPhotoGallery"
+        aria-label="Close gallery"
+        tabindex="{{_enableTabIndex(photoGalleryActive)}}"></paper-icon-button>
     <span flex>I/O Extended Photos</span>
-  </core-toolbar>
+  </paper-toolbar>
 
-  <core-toolbar class="navbar__overlay navbar__overlay--extended" aria-hidden="{{!extendedMapActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closeExtendedMapSection}}" aria-label="Close extended map" tabindex="{{extendedMapActive ? 0 : -1}}"></paper-icon-button>
+<!--   <paper-toolbar class="navbar__overlay navbar__overlay--extended"
+      aria-hidden$="{{!extendedMapActive}}" fit>
+    <paper-icon-button icon="arrow-back" on-tap="closeExtendedMapSection"
+        aria-label="Close extended map"
+        tabindex="{{_enableTabIndex(extendedMapActive)}}"></paper-icon-button>
     <span flex>2015 Extended events</span>
-  </core-toolbar>
+  </paper-toolbar> -->
 
-  <io-gallery hidden?="{{!photoGalleryActive}}" mobile="{{isPhoneSize}}"
-              imagePath="media.image.url" active="{{photoGalleryActive}}" fit></io-gallery>
+  <io-gallery hidden$="{{!photoGalleryActive}}"
+              mobile="[[isPhoneSize]]"
+              image-path="media.image.url"
+              active="{{photoGalleryActive}}" fit></io-gallery>
 
-  <template if="{{fullscreenVideoActive}}">
+  <template is="dom-if" if="{{fullscreenVideoActive}}" restamp>
     <div class="fullvideo__container" fit>
-     <google-youtube videoid="A-bjrru5bLU" height="100%" width="100%" fit
+     <google-youtube video-id="A-bjrru5bLU" height="100%" width="100%" fit
                      autohide="1" controls="2" modestbranding="1" showinfo="0"
                      iv_load_policy="3" rel="0" autoplay="1"
-                     on-google-youtube-ready="{{onOffsiteVideoReady}}"></google-youtube>
+                     on-google-youtube-ready="onOffsiteVideoReady"></google-youtube>
     </div>
   </template>
 
-  <div class="active">
+<div class="active">
+
+<div class="card__container card__container--top sidebyside slide-up"
+     layout horizontal vertical$="{{isPhoneSize}}" relative>
+    <div class="card" layout vertical auto-vertical flex>
+      <div class="card-content" flex$="{{!isPhoneSize}}">
+        <h3 class="card__title">Live stream</h3>
+        <div>Watch the keynote and select sessions in real-time, from your laptop or mobile device.</div>
+      </div>
+      <div class="card-content">
+        <a href="schedule?filters=Live%20streamed#day1" data-track-link="offsite-browse-schedule" data-ajax-link data-transition="hero-card-transition">Browse Live Schedule</a>
+      </div>
+    </div>
+    <div class="card" auto-vertical flex>
+      <div class="card-content">
+        <h3 class="card__title">I/O Live Embed Widget</h3>
+        <div>Personalize the I/O live stream for your website and share the #io15 conversation from the event with your audience.</div>
+      </div>
+      <div class="card-content">
+        <a href="widget" data-track-link="offsite-widget" data-ajax-link data-transition="hero-card-transition">Customize I/O Live widget</a>
+      </div>
+    </div>
+    <div class="ripple">
+      <div class="ripple__content"></div>
+    </div>
+  </div>
+
+
+  <div class="slide-up-delay">
+    <section class="card__photo--stage page__section js-experiment-instrument" layout vertical center-center>
+      <div class="play__button__container" on-tap="openSectionVideo" data-track-link="offsite-watch-extended-recap-video">
+        <h5><i18n-msg msgid="ioextendedwatch">Watch the 2014 I/O Extended recap video</i18n-msg></h5>
+      </div>
+    </section>
+
+    <div class="card__container" relative>
+      <div class="card" auto-vertical flex>
+        <div class="card-content">
+          <h3 class="card__title">I/O Extended events</h3>
+          <div>I/O Extended events may include live streamed sessions, local developer demos, hackathons and more. These events are brought to you by our Google Developer Groups, Student Ambassadors, and local developers.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card__container card__iorequest">
+    <div class="card" auto-vertical flex>
+      <div class="card-content">
+        <h3 class="card__title">#io15request</h3>
+        <p>Developers and product fans who are unable to attend Google I/O in-person are invited to participate in the <b>#io15request</b> program. During conference days, you can request images, information, and answers to your burning I/O questions, and a team of onsite Googlers will do their best to hunt down an answer for you.</p>
+        <div>To put in a request during I/O (May 28-29), all you need to do is create a <b>public</b> Google+ or Twitter post from your profile using the hashtag <b>#io15request</b>. We'll only be able to reply to requests written in English, French and German.</div>
+      </div>
+      <div class="card-content link-spacing">
+        <a href="https://plus.google.com/+topcontributors/" data-track-link="offsite-iorequest-gplus" target="_blank">See #io15requests on Google+</a>
+        <a href="https://twitter.com/search?f=realtime&q=%23io15request&src=typd" data-track-link="offsite-iorequest-twitter" target="_blank">See #io15requests on Twitter</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="hashtag" class="page__section">
+    <div class="io__hash"></div>
+  </section>
+
+</div>
+ <!--  <div class="active">
 
     <div class="card__container card__container--top slide-up">
-      <div class="card js-experiment-visualizer">
+      <div class="card">
         <div class="card-content">
           <h3>Developers and product fans from all over the world were also able to watch and participate in I/O 2015 through I/O Extended events.</h3>
         </div>
         <div class="card-content anchor-like">
-          <span role="link" tabindex="0" data-track-link="offsite-photos-extended" on-tap="{{toggleExtendedGallery}}">See photos from I/O extended</span>
+          <span role="link" tabindex="0" data-track-link="offsite-photos-extended"
+                on-tap="toggleExtendedGallery">See photos from I/O extended</span>
         </div>
       </div>
     </div>
 
     <div class="slide-up-delay">
 
-      <section class="page__section pics__section js-experiment-instrument" layout vertical>
+      <section class="page__section pics__section" layout vertical>
         <div layout horizontal>
-          <div class="photo__home" flex two?="{{isDesktopSize}}"></div>
+          <div class="photo__home" flex two$="{{isDesktopSize}}"></div>
           <div layout vertical flex>
             <div class="photo__home--top" flex></div>
             <div class="photo__home--bottom" flex></div>
@@ -61,75 +138,9 @@
         </div>
       </section>
 
-      <section class="page__section page__section--attend bg-dark-grey js-experiment-instrument {{ {'no-webgl': !webglSupported} | tokenList }}">
-
-        <div class="marker-results">
-          <div class="card marker-card">
-            <paper-icon-button icon="io:close" class="close-button" on-tap="{{resetExtendedSearch}}"></paper-icon-button>
-            <template repeat="{{marker in offsiteMarkerResults}}">
-              <div class="card-content {{ {active: marker.active} | tokenList}}" on-tap="{{onMarkerCardClick}}">
-                <h4 class="card__title">{{marker.name}}</h4>
-                <div layout horizontal center justified>
-                  <span><a href="//www.google.com/maps/place/{{marker.lat}},{{marker.lng}}" target="_blank">View in Google Maps</a></span>
-                  <a href="{{marker.link}}" data-track-link="offsite-visit-eventpage" target="_blank">Event details</a>
-                </div>
-                <div class="marker-card--closest">This is the closest event to your search.</div>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <h2 class="extended-title" hidden?="{{!webglSupported}}">See where I/O Extended events happened in 2015</h2>
-        <template if="{{!webglSupported}}">
-          <h2 class="extended-title">Searching for events is not supported in your browser :(</h2>
-        </template>
-
-        <div class="action__links" layout vertical>
-
-          <template if="{{extendedMapActive && didExtendedSearch && !politicalAreaSearch && !offsiteMarkerResults.length}}">
-            <h4>There are no events near that location. Try another search or check back later to find new events.</h4>
-          </template>
-
-          <template if="{{extendedMapActive && didExtendedSearch && politicalAreaSearch}}">
-            <h4>These are the closest results to your search.</h4>
-          </template>
-
-          <paper-button class="view__events" on-tap="{{openExtendedMap}}" hidden?="{{!webglSupported}}">
-            <a href="#join" data-track-link="offsite-view-2015-events"><core-icon icon="io:place"></core-icon>Find 2015 events</a>
-          </paper-button>
-
-          <div class="search__map" layout horizontal center self-center relative hidden?="{{!webglSupported}}">
-            <core-icon icon="io:search"></core-icon>
-            <paper-input id="autocomplete" label="Search for a city" on-keydown="{{onPlacesSearchKeydown}}"></paper-input>
-          </div>
-
-        </div>
-        <div class="attend__globe {{ {show: offsiteGlobeVisible} | tokenList }}"
-             on-marker-click="{{onMarkerClick}}" relative>
-
-          <google-maps-api on-api-load="{{initExtendedSearchBox}}" clientId="google-io" libraries="places" hidden></google-maps-api>
-
-          <webgl-globe id="offsite-globe"
-                       markers="{{offsiteLocations}}"
-                       locationTarget="{'lat': 36.5, 'lng': 0}"
-                       fov="0.3927"
-                       offsetY="-0.625"
-                       transitionDuration="4000"
-                       attractLoop
-                       scrollTarget="{{ScrollContainer}}"
-                       scrollTriggered="{{offsiteGlobeVisible}}"
-                       noInit?="{{!pageTransitionDone}}"
-                       noDraw?="{{mode === 'active'}}"
-                       webglSupported="{{webglSupported}}"></webgl-globe>
-
-          <core-ajax url="api/v1/extended" handleAs="json"
-                     auto?="{{pageTransitionDone && !offsiteLocations}}"
-                     response="{{offsiteLocations}}"></core-ajax>
-        </div>
-      </section>
     </div>
 
-  </div>
+  </div> -->
 
   <script>
   (function() {
@@ -140,15 +151,15 @@
       var topCard = IOWA.Elements.Main.querySelector('.card__container.slide-up');
 
       var videoContainer = document.querySelector('.fullvideo__container');
-      var video = videoContainer.querySelector('.fullvideo__container google-youtube');
+      var video = videoContainer.querySelector('google-youtube');
 
       // Wait for cc module to load, then make the fontsize smaller.
       // https://developers.google.com/youtube/iframe_api_reference#Events
       var callback = function() {
-        video.player.setOption('captions', 'fontSize', -2);
-        video.player.removeEventListener('onApiChange', callback);
+        video._player.setOption('captions', 'fontSize', -2);
+        video._player.removeEventListener('onApiChange', callback);
       };
-      video.player.addEventListener('onApiChange', callback);
+      video._player.addEventListener('onApiChange', callback);
 
       var animationTiming = {
         duration: ANIMATION_DURATION,
@@ -159,22 +170,22 @@
 
       var button = IOWA.Elements.Main.querySelector('.play__button__container');
 
-      var animation = new Animation(button, [
+      var animation = new KeyframeEffect(button, [
         {opacity: 1}, {opacity: 0}
       ], animationTiming);
 
       // Only animate top/bottom cards offscreen if not on mobile.
       if (!IOWA.Elements.Template.isPhoneSize) {
-        animation = new AnimationGroup([
+        animation = new GroupEffect([
           animation,
-          new Animation(topCard, [
+          new KeyframeEffect(topCard, [
             {transform: 'translateY(0)', opacity: 1},
             {transform: 'translateY(-100px)', opacity: 0}
           ], animationTiming)
         ]);
       }
 
-      var videoAnimation = new Animation(video, [
+      var videoAnimation = new KeyframeEffect(video, [
         {opacity: 0}, {opacity: 1}
       ], animationTiming);
 
@@ -182,13 +193,13 @@
 
       if (opt_reverse) {
         // Fade out gallery and slide back in page sections at the same time.
-        IOWA.PageAnimation.play(new AnimationGroup([
+        IOWA.PageAnimation.play(new GroupEffect([
           animation, videoAnimation
         ]), opt_callback);
         navOverlay.classList.remove('active');
       } else {
         // Slide out page sections, then fade in gallery.
-        IOWA.PageAnimation.play(new AnimationSequence([
+        IOWA.PageAnimation.play(new SequenceEffect([
           animation, videoAnimation
         ]), opt_callback);
         navOverlay.classList.add('active');
@@ -207,18 +218,18 @@
         easing: 'cubic-bezier(0.4,0,0.2,1)'
       };
 
-      var animation = new AnimationGroup([
-        new Animation(viewButton, [
+      var animation = new GroupEffect([
+        new KeyframeEffect(viewButton, [
           {opacity: 1, visibility: 'visible', 'pointer-events': 'auto'},
           {opacity: 0, visibility: 'hidden', 'pointer-events': 'none'}
         ], animationTiming),
-        new Animation(sectionTitle, [
+        new KeyframeEffect(sectionTitle, [
           {opacity: 1, visibility: 'visible'},
           {opacity: 0, visibility: 'hidden'}
         ], animationTiming)
       ]);
 
-      var searchInputAnimation = new Animation(searchInput, [
+      var searchInputAnimation = new KeyframeEffect(searchInput, [
         {opacity: 0, visibility: 'hidden'},
         {opacity: 1, visibility: 'visible'}
       ], animationTiming);
@@ -227,13 +238,13 @@
 
       if (opt_reverse) {
         // Fade in button, and bring back cards at same time.
-        IOWA.PageAnimation.play(new AnimationGroup([
+        IOWA.PageAnimation.play(new GroupEffect([
           animation, searchInputAnimation
         ]), opt_callback);
         navOverlay.classList.remove('active');
       } else {
         // Dismiss cards offscreen, then fade in search input.
-        IOWA.PageAnimation.play(new AnimationSequence([
+        IOWA.PageAnimation.play(new SequenceEffect([
           animation, searchInputAnimation
         ]), opt_callback);
         navOverlay.classList.add('active');
@@ -246,7 +257,7 @@
       var reverse = opt_reverse || false;
 
       var gallery = IOWA.Elements.Main.querySelector('io-gallery');
-      var animation = new Animation(gallery, [
+      var animation = new KeyframeEffect(gallery, [
         {opacity: 0}, {opacity: 1}
       ], {
         duration: 500,
@@ -287,21 +298,7 @@
         IOWA.Elements.Template.offsiteSearchRadius = 150;
       };
 
-      page.scrollToJoin = function() {
-        if (location.hash.substring(1) === 'join') {
-          var onGlobeReady_ = function(e) {
-            IOWA.Elements.Template.openExtendedMap(800);
-            // Remove listener. We don't want onGlobeReady_ running on other
-            // pages that contain the globe.
-            document.removeEventListener('globe-webgl-init', onGlobeReady_);
-          };
-          document.addEventListener('globe-webgl-init', onGlobeReady_);
-        }
-      };
-
       page.onPageTransitionDone = function() {
-        this.scrollToJoin();
-
         var gallery = IOWA.Elements.Main.querySelector('io-gallery');
         if (!gallery.items.length) {
           IOWA.Picasa.fetchExtendedPhotos(function(photos) {
@@ -314,7 +311,7 @@
         }
       };
 
-      IOWA.Elements.Template.closeExtendedPhotoGallery = function(e, detail, sender) {
+      IOWA.Elements.Template.closeExtendedPhotoGallery = function(e, detail) {
         runExtendedGalleryAnimation(true, function() {
           IOWA.Elements.Template.photoGalleryActive = false;
         });
@@ -322,12 +319,14 @@
         history.replaceState({}, null, location.pathname); // Remove #photos hash from URL.
       };
 
-      IOWA.Elements.Template.toggleExtendedGallery = function(e, detail, sender) {
+      IOWA.Elements.Template.toggleExtendedGallery = function(e, detail) {
         e.preventDefault();
 
-        if (sender && sender.hasAttribute('data-track-link')) {
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target && target.hasAttribute('data-track-link')) {
           IOWA.Analytics.trackEvent(
-              'link', 'click', sender.getAttribute('data-track-link'));
+              'link', 'click', target.getAttribute('data-track-link'));
         } else {
           IOWA.Analytics.trackEvent('link', 'click', 'onsite-photos-extended-deeplink');
         }
@@ -341,18 +340,21 @@
         }
       };
 
-      IOWA.Elements.Template.onOffsiteVideoReady = function(e, detail, sender) {
+      IOWA.Elements.Template.onOffsiteVideoReady = function(e, detail) {
         runVideoSectionAnimation();
       };
 
-      IOWA.Elements.Template.closeVideoSection = function(e, detail, sender) {
+      IOWA.Elements.Template.closeVideoSection = function(e, detail) {
         runVideoSectionAnimation(true, function() {
           IOWA.Elements.Template.fullscreenVideoActive = false;
         });
       };
 
-      IOWA.Elements.Template.openSectionVideo = function(e, detail, sender) {
-        IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+      IOWA.Elements.Template.openSectionVideo = function(e, detail) {
+        var target = Polymer.dom(e).rootTarget;
+
+        IOWA.Analytics.trackEvent(
+            'link', 'click', target.getAttribute('data-track-link'));
 
         // Only smooth scroll to content if not on mobile.
         if (IOWA.Elements.Template.isPhoneSize) {
@@ -365,177 +367,7 @@
         }
       };
 
-      IOWA.Elements.Template.closeExtendedMapSection = function(e, detail, sender) {
-        this.scrollLock(false);
-        // Make globe check its size when scrollbars are added to the page.
-        var globe = IOWA.Elements.Main.querySelector('webgl-globe');
-        if (globe) {
-          globe.canvasResized();
-          globe.restartAttractLoop();
-        }
-        this.resetExtendedSearch();
-
-        runExtendedMapAnimation(true, function() {
-          IOWA.Elements.Template.extendedMapActive = false;
-          history.replaceState({}, null, location.pathname); // Remove #join hash from URL.
-        });
-      };
-
-      IOWA.Elements.Template.openExtendedMap = function(e, detail, sender) {
-        var scrollDuration = (typeof e === 'number') ? e : 400;
-
-        // Smooth scroll to globe section.
-        var destEl = IOWA.Elements.Main.querySelector('.page__section--attend');
-        IOWA.Util.smoothScroll(destEl, scrollDuration, function() {
-          if (!IOWA.Elements.Template.webglSupported) {
-            return;
-          }
-
-          IOWA.Elements.Template.scrollLock(true);
-
-          // Make globe check its size when scrollbars are removed from the page.
-          var globe = IOWA.Elements.Main.querySelector('webgl-globe');
-          if (globe) {
-            globe.canvasResized();
-          }
-
-          IOWA.Elements.Template.extendedMapActive = true;
-          IOWA.Elements.Template.offsiteMarkerResults = [];
-          runExtendedMapAnimation();
-        });
-      };
-
-      IOWA.Elements.Template.onPlacesSearchKeydown = function(e, detail, sender) {
-        // Prevent places API autocomplete from closing on enter press.
-        // e.g. make sures select a dropdown item.
-        if (e.keyCode == 13) {
-          e.stopImmediatePropagation();
-        }
-      };
-
-      IOWA.Elements.Template.initExtendedSearchBox = function(e, detail, sender) {
-        // Add autocomplete to the extended search box when Maps API has loaded.
-        var autocomplete = new google.maps.places.Autocomplete(
-            document.querySelector('.page__section--attend #autocomplete'),
-            {types: ['geocode']});
-        var globe = document.querySelector('#offsite-globe');
-
-        google.maps.event.addListener(autocomplete, 'place_changed', function() {
-          var place = autocomplete.getPlace();
-          if (!place.geometry) {
-            return;
-          }
-
-          this.didExtendedSearch = true;
-          this.politicalAreaSearch = false;
-          this.offsiteMarkerResults = []; // clear previous results.
-
-          var location = place.geometry.location;
-
-          // If place searched for is a higher-level entity (like a country or
-          // state) don't try to find markers for it.
-          if (place.types.indexOf('continent') !== -1 ||
-              place.types.indexOf('country') !== -1 ||
-              place.types.indexOf('administrative_area_level_1') !== -1) {
-            this.politicalAreaSearch = true;
-
-          } else {
-            // Find all offsite events within a search radius and put in card.
-            var nearestMarkers = globe.getMarkersWithinDistance(location.lat(),
-                location.lng(), this.offsiteSearchRadius);
-            for (var i = 0; i < nearestMarkers.length; i++) {
-              this.offsiteMarkerResults.push(this.offsiteLocations[nearestMarkers[i]]);
-            }
-
-            // Wait a rAF so marker cards are stamped.
-            this.async(function() {
-              // Only add .show "closest match" message to the first card.
-              var closest = IOWA.Elements.Main.querySelector('.marker-card--closest');
-              if (closest) {
-                closest.classList.add('show');
-              }
-              IOWA.Elements.Main.querySelector('.marker-results').classList.add('active');
-            });
-          }
-
-          globe.location = {
-            lat: location.lat(),
-            lng: location.lng()
-          };
-
-          IOWA.Analytics.trackEvent('globe', 'place select', place.name);
-        }.bind(this));
-      };
-
-      IOWA.Elements.Template.resetExtendedSearch = function(e, detail, sender) {
-        IOWA.Elements.Main.querySelector('.marker-results').classList.remove('active');
-        var closest = IOWA.Elements.Main.querySelector('.marker-card--closest');
-        if (closest) {
-          closest.classList.remove('show');
-        }
-        document.querySelector('#offsite-globe').highlightedMarker = -1;
-        document.querySelector('.page__section--attend #autocomplete').value = null;
-
-        this.didExtendedSearch = false;
-        this.politicalAreaSearch = false;
-      };
-
-      IOWA.Elements.Template.onMarkerCardClick = function(e, detail, sender) {
-        for (var i = 0; i < this.offsiteMarkerResults.length; i++) {
-          this.offsiteMarkerResults[i].active = false;
-        }
-
-        var marker = sender.templateInstance.model.marker;
-        marker.active = true;
-
-        var globe = document.querySelector('#offsite-globe')
-        globe.highlightedMarker = this.offsiteLocations.indexOf(marker);
-      };
-
-      IOWA.Elements.Template.onMarkerClick = function(e, detail, sender) {
-        e.stopPropagation();
-
-        // Remove "closest match" message from the first card.
-        var closest = IOWA.Elements.Main.querySelector('.marker-card--closest');
-        if (closest) {
-          closest.classList.remove('show');
-        }
-
-        var markerIndex = e.detail.markerIndex;
-        var centerLocation = this.offsiteLocations[markerIndex];
-
-        function focusLocation() {
-          IOWA.Elements.Main.querySelector('.marker-results').classList.add('active');
-          var globe = document.querySelector('#offsite-globe');
-          globe.location = {
-            lat: centerLocation.lat,
-            lng: centerLocation.lng
-          };
-          globe.highlightedMarker = markerIndex;
-
-          this.offsiteMarkerResults = [];
-          this.politicalAreaSearch = false;
-
-          // Find all offsite events within a search radius around this marker and put in card.
-          var nearestMarkers = globe.getMarkersWithinDistance(
-              centerLocation.lat, centerLocation.lng, this.offsiteSearchRadius);
-          for (var i = 0; i < nearestMarkers.length; i++) {
-            this.offsiteMarkerResults.push(this.offsiteLocations[nearestMarkers[i]]);
-          }
-        }
-
-        if (!IOWA.Elements.Template.extendedMapActive) {
-          this.openExtendedMap(200);
-          this.async(focusLocation, null, 400);
-        } else {
-          focusLocation.call(this);
-        }
-
-        IOWA.Analytics.trackEvent('globe', 'marker click', centerLocation.name);
-      };
-
       page.load(); // Run load callback on page load.
-      page.scrollToJoin();
       page.hasBeenLoaded = true;
     }
 

@@ -7,18 +7,24 @@
 {% end %}
 
 {% define "content" %}
-  <core-toolbar class="navbar__overlay navbar__overlay--gallery" aria-hidden="{{!photoGalleryActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closePhotoGallery}}" aria-label="Close gallery" tabindex="{{photoGalleryActive ? 0 : -1}}"></paper-icon-button>
+  <paper-toolbar class="navbar__overlay navbar__overlay--gallery"
+                 aria-hidden$="{{!photoGalleryActive}}" fit>
+    <paper-icon-button icon="arrow-back" on-tap="closePhotoGallery"
+                       aria-label="Close gallery"
+                       tabindex="{{_enableTabIndex(photoGalleryActive)}}"></paper-icon-button>
     <span flex><i18n-msg msgid="io-in-photos">I/O in Photos</i18n-msg></span>
-  </core-toolbar>
+  </paper-toolbar>
 
-  <core-toolbar class="navbar__overlay navbar__overlay--video" aria-hidden="{{!fullscreenVideoActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closeVideoCard}}" aria-label="Close video" tabindex="{{fullscreenVideoActive ? 0 : -1}}"></paper-icon-button>
+  <paper-toolbar class="navbar__overlay navbar__overlay--video"
+                 aria-hidden$="{{!fullscreenVideoActive}}" fit>
+    <paper-icon-button icon="arrow-back" on-tap="closeVideoCard"
+                       aria-label="Close video"
+                       tabindex="{{_enableTabIndex(fullscreenVideoActive)}}"></paper-icon-button>
     <span flex><i18n-msg msgid="watch-keynote-video">Watch the 2015 I/O Keynote</i18n-msg></span>
-  </core-toolbar>
+  </paper-toolbar>
 
-  <io-gallery hidden?="{{!photoGalleryActive}}" mobile="{{isPhoneSize}}"
-              imagePath="media.image.url" active="{{photoGalleryActive}}" fit></io-gallery>
+  <io-gallery hidden$="{{!photoGalleryActive}}" mobile="{{isPhoneSize}}"
+              image-path="media.image.url" active="{{photoGalleryActive}}" fit></io-gallery>
 
   <div class="active">
     <div class="card__container card__container--top slide-up">
@@ -27,7 +33,9 @@
           <h3>Google I/O is an annual developer conference with inspirational talks, hands-on learning, and a chance to hear more about Google's latest developer products.</h3>
         </div>
         <div class="card-content">
-          <span class="anchor-like" role="link" tabindex="0" data-track-link="about-view-photos-card" on-tap="{{togglePhotoGallery}}">See photos from I/O 2015</span>
+          <span class="anchor-like" role="link" tabindex="0"
+              data-track-link="about-view-photos-card"
+              on-tap="togglePhotoGallery">See photos from I/O 2015</span>
         </div>
       </div>
     </div>
@@ -36,27 +44,28 @@
 
       <section class="page__section pics__section js-experiment-instrument" layout vertical>
         <div layout horizontal>
-          <div class="photo__about" flex two?="{{isDesktopSize}}" relative>
-            <core-image placeholder="images/home/io-logo@2x.png"
+          <div class="photo__about" flex two$="{{isDesktopSize}}" relative>
+            <iron-image placeholder="images/home/io-logo@2x.png"
                         style="background-color:#00BCD4"
-                        sizing="cover" preload fade fit></core-image>
+                        sizing="cover" preload fade fit></iron-image>
           </div>
           <div layout vertical flex>
             <div class="photo__about--top" flex relative>
-              <core-image placeholder="images/home/io-logo@2x.png"
+              <iron-image placeholder="images/home/io-logo@2x.png"
                           style="background-color:#00ACC1"
-                          sizing="cover" preload fade fit></core-image>
+                          sizing="cover" preload fade fit></iron-image>
             </div>
-            <div class="photo__about--bottom" flex relative hidden?="{{isPhoneSize}}">
-              <core-image placeholder="images/home/io-logo@2x.png"
+            <div class="photo__about--bottom" flex relative hidden$="{{isPhoneSize}}">
+              <iron-image placeholder="images/home/io-logo@2x.png"
                           style="background-color: #B2EBF2"
-                          sizing="cover" preload fade fit></core-image>
+                          sizing="cover" preload fade fit></iron-image>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="card__container sidebyside card--force-compositing" layout horizontal vertical?="{{isPhoneSize}}">
+      <div class="card__container sidebyside card--force-compositing"
+           layout horizontal vertical$="{{isPhoneSize}}">
         <div class="card js-experiment-visualizer" auto-vertical flex>
           <div class="card-content">
             <h3>Learn about product and platform innovations at Google, starting with the keynote hosted by our Senior Vice-President of Products, Sundar Pichai.</h3>
@@ -66,10 +75,12 @@
             </a>
           </div>
         </div>
-        <div class="card js-experiment-visualizer" layout vertical auto-vertical flex on-tap="{{playVideo}}" data-track-link="about-watch-keynote-video">
+        <div class="card js-experiment-visualizer" layout vertical auto-vertical flex
+             on-tap="playVideo" data-track-link="about-watch-keynote-video">
           <div flex class="card__photo card__photo--recap"></div>
           <div class="card-content">
-            <img src="images/play-video-button.png" class="play__button play__button--card" alt="Play video">
+            <img src="images/play-video-button.png"
+                 class="play__button play__button--card" alt="Play video">
             <span class="anchor-like" role="link" tabindex="0">Watch the keynote</span>
           </div>
         </div>
@@ -82,10 +93,11 @@
     </div>
   </div>
 
-  <template if="{{fullscreenVideoActive}}">
+  <template is="dom-if" if="[[fullscreenVideoActive]]" restamp>
     <div class="fullvideo__container" fit hidden>
-      <img src="images/home/keynote2015.jpg" class="fullvideo_thumbnail" alt="Watch the I/O 2015 keynote" fit>
-      <google-youtube videoid="7V-fIGMDsmE" height="100%" width="100%" fit
+      <img src="images/home/keynote2015.jpg" class="fullvideo_thumbnail"
+           alt="Watch the I/O 2015 keynote" fit>
+      <google-youtube video-id="7V-fIGMDsmE" height="100%" width="100%" fit
                       autohide="1" controls="2" modestbranding="1" showinfo="0"
                       iv_load_policy="3" rel="0" autoplay="1"></google-youtube>
     </div>
@@ -112,7 +124,7 @@
         easing: 'cubic-bezier(0.4,0,0.2,1)'
       };
 
-      var animation = new Animation(bottomSection, [
+      var animation = new KeyframeEffect(bottomSection, [
         {transform: 'translateY(0)', opacity: 1},
         {transform: 'translateY(100px)', opacity: 0}
       ], animationTiming);
@@ -121,32 +133,32 @@
 
       // Only animate top/bottom cards offscreen if not on mobile.
       if (!gallery.mobile) {
-        animation = new AnimationGroup([
+        animation = new GroupEffect([
           animation,
-          new Animation(topCard, [
+          new KeyframeEffect(topCard, [
             {transform: 'translateY(0)', opacity: 1},
             {transform: 'translateY(-100px)', opacity: 0}
           ], animationTiming),
-          new Animation(bottomCard, [
+          new KeyframeEffect(bottomCard, [
             {transform: 'translateY(0)', opacity: 1},
             {transform: 'translateY(100px)', opacity: 0}
           ], animationTiming)
         ]);
       }
 
-      var galleryAnimation = new Animation(gallery, [
+      var galleryAnimation = new KeyframeEffect(gallery, [
         {opacity: 0}, {opacity: 1}
       ], animationTiming);
 
       if (reverse) {
         // Fade out gallery and slide back in page sections at the same time.
-        IOWA.PageAnimation.play(new AnimationGroup([
+        IOWA.PageAnimation.play(new GroupEffect([
           animation, galleryAnimation
         ]), opt_callback);
         navOverlay.classList.remove('active');
       } else {
         // Slide out page sections, then fade in gallery.
-        IOWA.PageAnimation.play(new AnimationSequence([
+        IOWA.PageAnimation.play(new SequenceEffect([
           animation, galleryAnimation
         ]), opt_callback);
         navOverlay.classList.add('active');
@@ -167,7 +179,7 @@
         // Don't want to be rate limited though :\
         var setImages = function(photos) {
           var images = Array.prototype.slice.call(
-              IOWA.Elements.Main.querySelectorAll('.pics__section core-image'));
+              IOWA.Elements.Main.querySelectorAll('.pics__section iron-image'));
 
           var usedImages = [];
 
@@ -178,7 +190,7 @@
                 // Get a refresh image index every time.
                 var idx;
                 do {
-                  idx = Math.floor(Math.random() * photos.length)
+                  idx = Math.floor(Math.random() * photos.length);
                 } while (usedImages.indexOf(idx) != -1);
 
                 usedImages.push(idx);
@@ -223,9 +235,11 @@
         history.replaceState({}, null, location.pathname); // Remove #photos hash from URL.
       };
 
-      IOWA.Elements.Template.togglePhotoGallery = function(e, detail, sender) {
-        if (sender && sender.hasAttribute('data-track-link')) {
-          IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+      IOWA.Elements.Template.togglePhotoGallery = function(e, detail) {
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target && target.hasAttribute('data-track-link')) {
+          IOWA.Analytics.trackEvent('link', 'click', target.getAttribute('data-track-link'));
         } else {
           IOWA.Analytics.trackEvent('link', 'click', 'about-photos-deeplink');
         }

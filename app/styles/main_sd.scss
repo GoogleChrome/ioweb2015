@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-@import 'base/_breakpoints';
-@import 'base/_color';
-@import 'base/_typography';
-@import 'base/_layout';
+@import 'base/breakpoints';
+@import 'base/color';
+@import 'base/typography';
+@import 'base/layout';
 
-@import 'base/forms_sd';
+@import 'base/forms_sd.scss';
 
-core-drawer-panel::shadow {
-  #drawer {
-    z-index: 100; // TODO: stick in _zindex.scss
-  }
-  #scrim {
-    z-index: 5;// TODO: stick in _zindex.scss
-  }
-}
+// paper-drawer-panel::shadow {
+//   #drawer {
+//     z-index: 100; // TODO: stick in _zindex.scss
+//   }
+//   #scrim {
+//     z-index: 5;// TODO: stick in _zindex.scss
+//   }
+// }
 
-paper-tabs.white {
-  &::shadow #selectionBar {
-    background-color: #fff;
-  }
-  & paper-tab::shadow {
-    .tab-content {
-      opacity: 1 !important;
-    }
-    #ink {
-      color: rgba(255,255,255,0.5);
-    }
-  }
-}
+// paper-tabs.white {
+//   &::shadow #selectionBar {
+//     background-color: #fff;
+//   }
+//   & paper-tab::shadow {
+//     .tab-content {
+//       opacity: 1 !important;
+//     }
+//     #ink {
+//       color: rgba(255,255,255,0.5);
+//     }
+//   }
+// }
 
 .card__signin-intro {
   &::shadow #scroller {
@@ -92,28 +92,28 @@ paper-tabs.white {
   }
 }
 
-#page-schedule {
-  paper-dropdown-menu::shadow {
-    #arrow, #label {
-      color: inherit;
-    }
-  }
-  .session__rate::shadow #scroller,
-  .session__detail::shadow #scroller {
-    width: 100%;
-    padding: 0;
-  }
-  @media (min-width: $tablet-breakpoint-min) {
-    .session__rate::shadow #scroller,
-    .session__detail::shadow #scroller {
-      width: 768px;
-    }
-  }
-}
+// #page-schedule {
+//   // paper-dropdown-menu::shadow {
+//   //   #arrow, #label {
+//   //     color: inherit;
+//   //   }
+//   // }
+//   .session__rate::shadow #scroller,
+//   .session__detail::shadow #scroller {
+//     width: 100%;
+//     padding: 0;
+//   }
+//   @media (min-width: $tablet-breakpoint-min) {
+//     .session__rate::shadow #scroller,
+//     .session__detail::shadow #scroller {
+//       width: 768px;
+//     }
+//   }
+// }
 
 #page-videos {
   .filter-rows {
-    io-radio-button::shadow #radioLabel {
+    paper-radio-button::shadow #radioLabel {
       order: -1;
       margin: 0 10px 0 0;
       flex: 1;
@@ -121,27 +121,27 @@ paper-tabs.white {
   }
 }
 
-// phase 3 -----
-#page-about {
-  .pics__section {
-    core-image::shadow #placeholder {
-      background-size: 15% !important;
-      opacity: 0.5;
-      &.fadein {
-        opacity: 0;
-      }
-    }
-  }
-}
-// -----
+// // phase 3 -----
+// #page-about {
+//   .pics__section {
+//     iron-image::shadow #placeholder {
+//       background-size: 15% !important;
+//       opacity: 0.5;
+//       &.fadein {
+//         opacity: 0;
+//       }
+//     }
+//   }
+// }
+// // -----
 
-.card__photo core-image::shadow #placeholder {
-  background-color: $color-cyan-500;
-  background-size: contain !important;
-}
+// .card__photo iron-image::shadow #placeholder {
+//   background-color: $color-cyan-500;
+//   background-size: contain !important;
+// }
 
-footer {
-  paper-dropdown-menu::shadow #label {
-    color: inherit;
-  }
-}
+// footer {
+//   paper-dropdown-menu::shadow #label {
+//     color: inherit;
+//   }
+// }

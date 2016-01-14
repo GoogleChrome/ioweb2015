@@ -9,13 +9,14 @@
       easeintime="490" waittime="100"
       easeouttime="400"
       value="{{countdownValue}}" autoStart
-      aria-label="{{countdownValue.days}} days, {{countdownValue.hours}} hours, {{countdownValue.minutes}} minutes, {{countdownValue.seconds}} seconds, until Google I/O"
+      aria-label$="{{countdownValue.days}} days, {{countdownValue.hours}} hours, {{countdownValue.minutes}} minutes, {{countdownValue.seconds}} seconds, until Google I/O"
       role="timer">
   </countdown-timer>
 </div> -->
 <div class="photo__masthead photo__masthead--fullbleed" fit>
   <div class="card__photo--stage" layout vertical center-center>
-    <div class="play__button__container" on-tap="{{openMastheadVideo}}" data-link-track="home-watch-keynote-masthead">
+    <div class="play__button__container" on-tap="openMastheadVideo"
+         data-track-link="home-watch-keynote-masthead">
       <h5>Watch the keynote</h5>
     </div>
   </div>
@@ -26,19 +27,27 @@
 
   <social-poller url="api/v1/social" posts="{{socialPosts}}" interval="30000"></social-poller>
 
-  <core-toolbar class="navbar__overlay navbar__overlay--video" aria-hidden="{{!fullscreenVideoActive}}" fit>
-    <paper-icon-button icon="arrow-back" on-tap="{{closeVideoCard}}" aria-label="Close video" tabindex="{{fullscreenVideoActive ? 0 : -1}}"></paper-icon-button>
+  <paper-toolbar class="navbar__overlay navbar__overlay--video"
+                 aria-hidden$="{{!fullscreenVideoActive}}" fit>
+    <paper-icon-button icon="arrow-back"
+        on-tap="closeVideoCard"
+        aria-label="Close video"
+        tabindex="[[_enableTabIndex(fullscreenVideoActive)]]"></paper-icon-button>
     <span flex>Watch</span>
-  </core-toolbar>
+  </paper-toolbar>
 
   <!-- backdrop shouldn't be applied on ios - github.com/Polymer/paper-dialog/issues/16 -->
-  <paper-dialog class="video_overlay-dialog" transition="core-transition-center"
-                backdrop?="{{!isIOS}}" layered="false"
-                on-core-overlay-close-completed="{{closeMastheadVideo}}">
-    <paper-icon-button icon="arrow-back" core-overlay-toggle aria-label="Close dialog"></paper-icon-button>
-    <template if="{{mastheadVideoActive}}">
+
+  <paper-dialog class="video_overlay-dialog"
+                entry-animation="scale-up-animation"
+                exit-animation="fade-out-animation"
+                with-backdrop="[[!isIOS]]"
+                on-iron-overlay-closed="closeMastheadVideo"
+                auto-fit-on-attach>
+    <paper-icon-button icon="arrow-back" dialog-dismiss aria-label="Close dialog"></paper-icon-button>
+    <template is="dom-if" if="{{mastheadVideoActive}}" restamp>
       <div class="fullvideo__container" fit>
-        <google-youtube videoid="7V-fIGMDsmE" fit width="100%" height="100%"
+        <google-youtube video-id="7V-fIGMDsmE" fit width="100%" height="100%"
             autohide="1" controls="2" modestbranding="1" showinfo="0"
             iv_load_policy="3" rel="0" autoplay="1"></google-youtube>
       </div>
@@ -52,10 +61,12 @@
           <h3>Google I/O is for developers - the creative coders who are building what's next.
             Each year, we explore the latest in tech, mobile & beyond.</h3>
         </div>
-        <div relative><paper-progress indeterminate fit hidden?="{{!settingsIOReminder}}"></paper-progress></div>
+        <div relative>
+          <paper-progress indeterminate fit hidden$="{{!settingsIOReminder}}"></paper-progress>
+        </div>
         <div class="card-content link-spacing">
-          <a href="#" data-track-link="home-watch-keynote" on-tap="{{openMastheadVideo}}">
-            <core-icon icon="io:videocam"></core-icon> Watch the keynote
+          <a href="#" data-track-link="home-watch-keynote" on-tap="openMastheadVideo">
+            <iron-icon icon="io:videocam"></iron-icon> Watch the keynote
           </a>
         </div>
       </div>
@@ -84,26 +95,31 @@
         <div layout horizontal justified>
           <h2>Featured sessions</h2>
           <div>
-            <paper-icon-button icon="io:keyboard-arrow-left" on-tap="{{shiftContentLeft}}"></paper-icon-button>
-            <paper-icon-button icon="io:keyboard-arrow-right" on-tap="{{shiftContentRight}}"></paper-icon-button>
+            <paper-icon-button icon="io:keyboard-arrow-left"
+                on-tap="shiftContentLeft"></paper-icon-button>
+            <paper-icon-button icon="io:keyboard-arrow-right"
+                on-tap="shiftContentRight"></paper-icon-button>
           </div>
         </div>
         <div class="featured__videos" layout horizontal>
-          <template repeat="{{session in scheduleData.sessions | featuredSessionsFilter}}">
+          <template is="dom-repeat"
+                    items="[[featuredSessionsFilter(scheduleData.sessions)}}" as="session">
             <div class="item">
               <div class="card card__video"
-                   data-videoid="{{session.youtubeUrl}}" data-videoimg="{{session.photoUrl}}"
-                   on-tap="{{openVideo}}">
+                   data-videoid$="[[session.youtubeUrl]]"
+                   data-videoimg$="[[session.photoUrl]]"
+                   on-tap="openVideo">
                 <div class="card__photo" relative>
-                  <core-image src="{{session.photoUrl}}"
-                              load?="{{!!session}}" sizing="cover" preload
-                              placeholder="images/io15-color.png" fade fit></core-image>
+                  <iron-image src="{{session.photoUrl}}"
+                              sizing="cover" preload
+                              placeholder="images/io15-color.png" fade fit></iron-image>
                 </div>
                 <div class="card-content">
                   <img src="images/play-video-button.png"
-                       class="play__button play__button--card" title="Play video" alt="Play video">
+                       class="play__button play__button--card"
+                       title="Play video" alt="Play video">
                   <div class="video-title" title="{{session.title}}">{{session.title}}&nbsp;</div>
-                  <div class="video-author">{{session.speakers | speakerIdsToNameString}}&nbsp;</div>
+                  <div class="video-author">{{speakerIdsToNameString(session.speakers)}}&nbsp;</div>
                 </div>
               </div>
             </div>
@@ -114,7 +130,7 @@
 
       <section class="page__section pics__section js-experiment-instrument" layout vertical>
         <div layout horizontal>
-          <div class="photo__home" flex two?="{{isDesktopSize}}"></div>
+          <div class="photo__home" flex two$="{{isDesktopSize}}"></div>
           <div layout vertical flex>
             <div class="photo__home--top" flex></div>
             <div class="photo__home--bottom" flex></div>
@@ -162,27 +178,28 @@
 
       <section id="join" class="page__section js-experiment-instrument js-experiment-instrument--no-bottom-margin bg-light-grey">
         <h2>See what everyone was talking about at #io15</h2>
-        <div class="join__social" layout vertical end hidden?="{{isPhoneSize}}">
+        <div class="join__social" layout vertical end hidden$="{{isPhoneSize}}">
           <a href="https://plus.google.com/+GoogleDevelopers" data-track-link="home-social-plus-google-developers" target="_blank">
-            +googledevelopers<core-icon icon="io:post-gplus"></core-icon>
+            +googledevelopers<iron-icon icon="io:post-gplus"></iron-icon>
           </a>
           <a href="https://twitter.com/googledevs" data-track-link="home-social-twitter-google-devs" target="_blank">
-            @googledevs<core-icon icon="io:post-twitter"></core-icon>
+            @googledevs<iron-icon icon="io:post-twitter"></iron-icon>
           </a>
         </div>
 
         <div class="io__hash" aria-label="I/O hash tag"></div>
 
-        <social-poller url="api/v1/social" posts="{{socialPosts}}" interval="30000"></social-poller>
+        <social-poller url="api/v1/social" posts="{{socialPosts}}"
+                       interval="30000"></social-poller>
 
-        <template if="{{socialPosts.length >= 3}}">
-          <div class="sidebyside" layout horizontal vertical?="{{isPhoneSize}}">
-            <template repeat="{{socialPost in socialPosts | limit(3)}}">
-              <social-post kind="{{socialPost.kind}}"
-                           author="{{socialPost.author}}"
-                           url="{{socialPost.url}}"
-                           text="{{socialPost.text}}"
-                           when="{{socialPost.when}}">
+        <template is="dom-if" if="[[_showSocialPosts(socialPosts, 3)]]">
+          <div class="sidebyside" layout horizontal vertical$="{{isPhoneSize}}">
+            <template is="dom-repeat" items="{{limit(socialPosts, 3)}}" as="post">
+              <social-post kind="[[post.kind]]"
+                           author="[[post.author]]"
+                           url="[[post.url]]"
+                           text="[[post.text]]"
+                           when="[[post.when]]">
               </social-post>
             </template>
           </div>
@@ -191,16 +208,14 @@
     </div>
   </div>
 
-  <template if="{{fullscreenVideoActive}}">
+  <template is="dom-if" if="[[fullscreenVideoActive]]" restamp>
     <div class="fullvideo__container" fit hidden>
       <img src="images/home/recap-500@2x.jpg" class="fullvideo_thumbnail" alt="Watch" fit>
-      <google-youtube videoid="7V-fIGMDsmE" height="100%" width="100%" fit
+      <google-youtube video-id="7V-fIGMDsmE" height="100%" width="100%" fit
                       autohide="1" controls="2" modestbranding="1" showinfo="0"
                       iv_load_policy="3" rel="0" autoplay="1"></google-youtube>
     </div>
   </template>
-
-
 
   <script>
   (function() {

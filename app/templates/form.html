@@ -43,7 +43,7 @@
           <div class="card-content">
             <h3 class="card__title">First, tell us where you event is</h3>
             <div>
-              <template if="{{pageTransitionDone}}">
+              <template is="dom-if" if="[[pageTransitionDone]]">
                 <io-extended-form></io-extended-form>
               </template>
             </div>

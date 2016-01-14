@@ -12,6 +12,7 @@ limitations under the License.
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <!--
 The `<io-logo>` provides a  material design animation loading screen which transitions
@@ -22,7 +23,7 @@ is because there is no destination position to transition to.
 
 `<io-logo>` is expected to be within a container element. The container should
 expand to the full viewport width/height and vertically/horizontally center
-its children using CSS flebox (or similar). The `<io-logo>` element doesn't
+its children using CSS flexbox (or similar). The `<io-logo>` element doesn't
 provide this feature by default so styling can be applied on the outside by
 the main page, before Polymer is ready and the element is upgraded.
 
@@ -59,285 +60,273 @@ Fired when loading animation is complete.
 
 @event io-logo-animation-done
 -->
-<polymer-element name="io-logo" attributes="height width year page hideMasthead">
-  <template>
-    <link rel="stylesheet" href="io-logo.css">
-    <div layout horizontal style="height:100%">
-      <div id="i" class="letter" flex></div>
+
+<dom-module id="io-logo">
+  <link rel="import" type="css" href="io-logo.css">
+  <style>
+    .layout.horizontal {
+      @apply(--layout-horizontal);
+    }
+    .layout.vertical {
+      @apply(--layout-vertical);
+    }
+    .flex {
+      @apply(--layout-flex);
+    }
+    .center-center {
+      @apply(--layout-center);
+      @apply(--layout-center-justified);
+    }
+  </style>
+  <template strip-whitespace>
+    <div class="layout horizontal" style="height:100%">
+      <div id="i" class="letter flex"></div>
       <div id="slash" class="letter"></div>
-      <div id="o" class="o letter" _style="max-width:[[height - 2]]px" flex layout vertical center-center>
-        <div id="o2" class="o" _style="height:{{height - 20}}px;width:{{height - 20}}px" layout vertical center-center>
+      <div id="o" class="o letter layout vertical center-center flex"
+                  style$="{{_computeStyle(height)}}">
+        <div id="o2" class="o layout vertical center-center"
+             style$="{{_computeDimensions(height)}}">
           <h2 id="year" aria-hidden="true">[[year]]</h2>
         </div>
       </div>
     </div>
   </template>
   <script>
-  Polymer({
-    /**
-     * The two-digit year to display inside the "O".
-     *
-     * @attribute width
-     * @type number
-     * @default the current year (e.g. 15)
-     */
-    year: (new Date()).getFullYear() % 2000,
+    Polymer({
+      is: 'io-logo',
 
-    /**
-     * Height of the logo in pixels.
-     *
-     * @attribute height
-     * @type number|string
-     * @default 165
-     */
-    height: 165,
-
-    /**
-     * Width of the logo in pixels.
-     *
-     * @attribute width
-     * @type number|string
-     * @default 213
-     */
-    width: 312,
-
-    /**
-     * The page that was loaded at pageload time.
-     *
-     * @attribute page
-     * @type string
-     * @default null
-     */
-    page: null,
-
-    /**
-     * The number of milliseconds the center of the "O" shows after it has grown.
-     *
-     * @property SHOW_FOR
-     * @type number
-     * @default 450
-     */
-    SHOW_FOR: 450,
-
-    /**
-     * The number of milliseconds before the "O" starts to grow.
-     *
-     * @property START_DELAY
-     * @type number
-     * @default 350
-     */
-    START_DELAY: 350,
-
-    /**
-     * The left/top of the destination node will be used to calculate the final
-     * left/top of the logo at the end of its animation.
-     *
-     * @property destination
-     * @type Element
-     * @default null
-     */
-    destination: null,
-
-    /**
-     * The site's container masthead element.
-     *
-     * @property masthead
-     * @type Element
-     * @default null
-     */
-    masthead: null,
-
-    /**
-     * The colored background element that will be scaled down to the masthead size.
-     *
-     * @property backgroundTarget
-     * @type Element
-     * @default null
-     */
-    backgroundTarget: null,
-
-    /**
-     * If true, the masthead background is hidden immediacy when the "I/O"
-     * animation is done.
-     *
-     * @property hideMasthead
-     * @type Boolean
-     * @default null
-     */
-    hideMasthead: false,
-
-    ready: function() {
-      this.heightChanged();
-      this.widthChanged();
-    },
-
-    attached: function() {
-      this.start();
-    },
-
-    heightChanged: function() {
-      this.style.height = parseInt(this.height) + 'px';
-    },
-
-    widthChanged: function() {
-      this.style.width = parseInt(this.width) + 'px';
-    },
-
-    /**
-     * Starts the loading animation sequence.
-     * @method start
-     */
-    start: function() {
-      var DURATION = 350;
-
-      // This runs forward and then in reverse, so wait for half of SHOW_FOR on
-      // each iteration by calculating its offset.
-      var offset = DURATION / (DURATION + this.SHOW_FOR / 2);
-      var animation = [
-        {transform: 'scale(0)', easing: 'cubic-bezier(0,0,0.21,1)'},
-        {transform: 'scale(1)', offset: offset},
-        {transform: 'scale(1)'}
-      ];
-
-      var player = this.$.o2.animate(animation, {
-        delay: this.START_DELAY,
-        duration: DURATION + this.SHOW_FOR / 2,
-        iterations: 2,
-        direction: 'alternate'
-      });
-
-      player.onfinish = this.moveLogo.bind(this);
-    },
-
-    moveLogo: function() {
-      this.backgroundTarget = this.parentElement.querySelector('[iologobackground]');
-      this.masthead = document.querySelector('.masthead');
-      this.destination = document.querySelector('[iologodestination]');
-      this.fab = document.querySelector('.fab:not([hidden])');
-
-      if (this.hideMasthead) {
-        this.backgroundTarget.style.opacity = 0;
-      }
-
-      // If for some reason these animation elements are not in the DOM at this
-      // point, wait for the auto-binding template to stamp them and retry.
-      // Use the cached FAB var as an indicator the template has stamped.
-      if (!(this.destination && this.fab && this.masthead)) {
-        var observer = new PathObserver(IOWA.Elements, 'FAB');
-        observer.open(function(fab, oldValue) {
-          if (fab) {
-            this.moveLogo();
+      properties: {
+        /**
+         * The number of milliseconds the center of the "O" shows after it has grown.
+         */
+        SHOW_FOR: {
+          type: Number,
+          value: 450
+        },
+        /**
+         * The number of milliseconds before the "O" starts to grow.
+         */
+        START_DELAY: {
+          type: Number,
+          value: 350
+        },
+        /**
+         * The colored background element that will be scaled down to the masthead size.
+         */
+        backgroundTarget: {
+          value: null
+        },
+        /**
+         * The left/top of the destination node will be used to calculate the final
+         * left/top of the logo at the end of its animation.
+         */
+        destination: {
+          value: null
+        },
+        /**
+         * Height of the logo in pixels.
+         */
+        height: {
+          type: Number,
+          value: 165,
+          observer: '_heightChanged'
+        },
+        /**
+         * If true, the masthead background is hidden immediacy when the "I/O"
+         * animation is done.
+         */
+        hideMasthead: {
+          type: Boolean,
+          value: false
+        },
+        /**
+         * The site's container masthead element.
+         */
+        masthead: { value: null },
+        /**
+         * The page name that was loaded at pageload time.
+         */
+        page: {
+          type: String,
+          value: null
+        },
+        /**
+         * Width of the logo in pixels.
+         */
+        width: {
+          type: Number,
+          value: 312,
+          observer: '_widthChanged'
+        },
+        /**
+         * The two-digit year to display inside the "O".
+         */
+        year: {
+          value: function() {
+            return new Date().getFullYear() % 2000;
           }
-        }.bind(this));
-
-        return;
-      }
-
-      var current = this.getBoundingClientRect();
-      var dest = this.destination.getBoundingClientRect();
-      var mast = this.masthead.getBoundingClientRect();
-      var fabMetrics = this.fab.getBoundingClientRect();
-
-      var containerWidth = document.documentElement.clientWidth;
-      var containerHeight = document.documentElement.clientHeight;
-
-      var diffX = dest.left - current.left;
-      var diffY = dest.top - current.top;
-
-      var isMobileSize = containerWidth <= 769;
-
-      // Magic padding/margin offsets to get the I/O logo in its final position.
-      if (!isMobileSize) {
-        diffY -= 62;
-        scale = 0.18;
-      }
-
-      // Ensure FAB is in front of masthead transition up.
-      this.fab.style.zIndex = getComputedStyle(this.parentElement).zIndex + 1;
-
-      var animationProps = {
-        duration: 500,
-        fill: 'forwards',
-        easing: 'cubic-bezier(0,0,0.21,1)'
-      };
-
-      var mastheadY = Math.max(containerHeight - mast.height, 0);
-
-      // Masthead clipping.
-      var mastheadClipAnimation = new Animation(this.backgroundTarget, [
-        {transform: 'translateY(0)'},
-        {transform: 'translateY(-' + mastheadY + 'px)'}
-      ], animationProps);
-
-      // Fab hangs onto the masthead as it comes up.
-      var fabAnimation = new Animation(this.fab, [
-        {transform: 'translateY(' + (mastheadY + fabMetrics.height / 2) + 'px)'},
-        {transform: 'translateY(0)'}
-      ], {
-        // Safari can't run fab pull-up animation so make it 0 duration.
-        // For everything else, run animation slightly faster than the masthead (more ground to cover).
-        duration: IOWA.Util.isSafari() ? 0 : 485,
-        easing: 'cubic-bezier(0,0,0.21,1)'
-      });
-
-      if (isMobileSize) {
-        // Initialize fab offscreen.
-        this.fab.style.transform = 'translateY(' +
-            (mastheadY + fabMetrics.height / 2)  + 'px)';
-        // Fade out I/O logo then clip masthead background.
-        var animations = new AnimationSequence([
-          // I/O logo fade out.
-          new Animation(this, [
-            {opacity: 1},
-            {opacity: 0}
-          ], {
-            duration: 300,
-            fill: 'forwards',
+        }
+      },
+      ready: function() {
+        this._heightChanged();
+        this._widthChanged();
+      },
+      attached: function() {
+        this.start();
+      },
+      _heightChanged: function() {
+        this.style.height = parseInt(this.height) + 'px';
+      },
+      _widthChanged: function() {
+        this.style.width = parseInt(this.width) + 'px';
+      },
+      /**
+       * Starts the loading animation sequence.
+       * @method start
+       */
+      start: function() {
+        var DURATION = 350;
+        // This runs forward and then in reverse, so wait for half of SHOW_FOR on
+        // each iteration by calculating its offset.
+        var offset = DURATION / (DURATION + this.SHOW_FOR / 2);
+        var animation = [
+          {
+            transform: 'scale(0)',
             easing: 'cubic-bezier(0,0,0.21,1)'
-          })
-        ]);
-      } else {
-        // At the same time, clip masthead background and move I/O logo.
-        var animations = new AnimationGroup([
-          mastheadClipAnimation,
-          fabAnimation,
-          // I/O logo movement.
-          new Animation(this, [
-            {transform: 'none'},
-            {transform: 'translate3d(' + diffX + 'px,' + diffY + 'px,0) scale(' + scale + ')'}
-          ], animationProps)
-        ]);
-      }
-
-      var player = document.timeline.play(animations);
-
-      player.onfinish = function(e) {
-        var el = this.parentElement;
-
+          },
+          {
+            transform: 'scale(1)',
+            offset: offset
+          },
+          { transform: 'scale(1)' }
+        ];
+        var player = this.$.o2.animate(animation, {
+          delay: this.START_DELAY,
+          duration: DURATION + this.SHOW_FOR / 2,
+          iterations: 2,
+          direction: 'alternate'
+        });
+        player.onfinish = this.moveLogo.bind(this);
+      },
+      moveLogo: function() {
+        var parent = Polymer.dom(this.parentElement);
+        this.backgroundTarget = parent.querySelector('[iologobackground]');
+        this.masthead = document.querySelector('.masthead');
+        this.destination = document.querySelector('[iologodestination]');
+        this.fab = document.querySelector('.fab:not([hidden])');
+        if (this.hideMasthead) {
+          this.backgroundTarget.style.opacity = 0;
+        }
+        // // If for some reason these animation elements are not in the DOM at this
+        // // point, wait for the auto-binding template to stamp them and retry.
+        // // Use the cached FAB var as an indicator the template has stamped.
+        // if (!(this.destination && this.fab && this.masthead)) {
+        //   var observer = new PathObserver(IOWA.Elements, 'FAB');
+        //   observer.open(function (fab, oldValue) {
+        //     if (fab) {
+        //       this.moveLogo();
+        //     }
+        //   }.bind(this));
+        //   return;
+        // }
+        var current = this.getBoundingClientRect();
+        var dest = this.destination.getBoundingClientRect();
+        var mast = this.masthead.getBoundingClientRect();
+        var fabMetrics = this.fab.getBoundingClientRect();
+        var containerWidth = document.documentElement.clientWidth;
+        var containerHeight = document.documentElement.clientHeight;
+        var diffX = dest.left - current.left;
+        var diffY = dest.top - current.top;
+        var isMobileSize = containerWidth <= 769;
+        // Magic padding/margin offsets to get the I/O logo in its final position.
+        if (!isMobileSize) {
+          diffY -= 62;
+          scale = 0.18;
+        }
+        // Ensure FAB is in front of masthead transition up.
+        this.fab.style.zIndex = getComputedStyle(this.parentElement).zIndex + 1;
+        var animationProps = {
+          duration: 500,
+          fill: 'forwards',
+          easing: 'cubic-bezier(0,0,0.21,1)'
+        };
+        var mastheadY = Math.max(containerHeight - mast.height, 0);
+        // Masthead clipping.
+        var mastheadClipAnimation = new KeyframeEffect(this.backgroundTarget, [
+          { transform: 'translateY(0)' },
+          { transform: 'translateY(-' + mastheadY + 'px)' }
+        ], animationProps);
+        // Fab hangs onto the masthead as it comes up.
+        var fabAnimation = new KeyframeEffect(this.fab, [
+          { transform: 'translateY(' + (mastheadY + fabMetrics.height / 2) + 'px)' },
+          { transform: 'translateY(0)' }
+        ], {
+          // Safari can't run fab pull-up animation so make it 0 duration.
+          // For everything else, run animation slightly faster than the masthead (more ground to cover).
+          duration: IOWA.Util.isSafari() ? 0 : 485,
+          easing: 'cubic-bezier(0,0,0.21,1)'
+        });
         if (isMobileSize) {
-          document.timeline.play(
-            new AnimationGroup([fabAnimation, mastheadClipAnimation]
-          )).onfinish = function(e) {
-            this.fab.style.transform = 'none'; // Remove transform.
+          // Initialize fab offscreen.
+          this.fab.style.transform = 'translateY(' +
+                (mastheadY + fabMetrics.height / 2) + 'px)';
+          // Fade out I/O logo then clip masthead background.
+          var animations = new SequenceEffect([// I/O logo fade out.
+            new KeyframeEffect(this, [
+              { opacity: 1 },
+              { opacity: 0 }
+            ], {
+              duration: 300,
+              fill: 'forwards',
+              easing: 'cubic-bezier(0,0,0.21,1)'
+            })]);
+        } else {
+          // At the same time, clip masthead background and move I/O logo.
+          var animations = new GroupEffect([
+            mastheadClipAnimation,
+            fabAnimation,
+            // I/O logo movement.
+            new KeyframeEffect(this, [
+              {transform: 'none'},
+              {transform: 'translate3d(' + diffX + 'px,' + diffY + 'px,0) scale(' + scale + ')' }
+            ], animationProps)
+          ]);
+        }
+        var player = document.timeline.play(animations);
+        player.onfinish = function(e) {
+          var el = this.parentElement;
+          if (isMobileSize) {
+            document.timeline.play(new GroupEffect([
+              fabAnimation,
+              mastheadClipAnimation
+            ])).onfinish = function(e) {
+              this.fab.style.transform = 'none';
+              // Remove transform.
+              if (this.fab.localName === 'experiment-fab-container') {
+                this.fab.style.zIndex = 'auto';
+              } else {
+                this.fab.style.zIndex = '3';
+              }
+              Polymer.dom(el.parentElement).removeChild(el);
+              this.fire('io-logo-animation-done');
+            }.bind(this);
+          } else {
             if (this.fab.localName === 'experiment-fab-container') {
               this.fab.style.zIndex = 'auto';
             } else {
               this.fab.style.zIndex = '3';
             }
-            el.parentElement.removeChild(el);
+            Polymer.dom(el.parentElement).removeChild(el);
             this.fire('io-logo-animation-done');
-          }.bind(this);
-        } else {
-          if (this.fab.localName === 'experiment-fab-container') {
-            this.fab.style.zIndex = 'auto';
-          } else {
-            this.fab.style.zIndex = '3';
           }
-          el.parentElement.removeChild(el);
-          this.fire('io-logo-animation-done');
-        }
-      }.bind(this);
-    }
-  });
+        }.bind(this);
+      },
+      _computeStyle: function(height) {
+        return 'max-width:' + (height - 2) + 'px';
+      },
+      _computeDimensions: function(height) {
+        return 'height:' + (height - 20) + 'px;width:' + (height - 20) + 'px';
+      }
+    });
   </script>
-</polymer-element>
+</dom-module>

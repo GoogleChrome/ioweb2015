@@ -16,9 +16,9 @@
 
 $name: 'page-onsite';
 
-@import '../base/_vars';
-@import '../base/_layout';
-@import '../base/_breakpoints';
+@import '../base/vars';
+@import '../base/layout';
+@import '../base/breakpoints';
 
 
 ##{$name} {
@@ -73,7 +73,7 @@ $name: 'page-onsite';
       margin-right: $largeKeyline;
     }
   }
-  core-icon {
+  iron-icon {
     margin-right: 5px;
   }
 }

@@ -44,7 +44,8 @@ IOWA.ServiceWorkerRegistration = (function() {
               switch (installingWorker.state) {
                 case 'installed':
                   if (!navigator.serviceWorker.controller) {
-                    IOWA.Elements.Toast.showMessage('Caching complete! Future visits will work offline.');
+                    IOWA.Elements.Toast.showMessage(
+                        'Caching complete! Future visits will work offline.');
                   }
                   break;
 
@@ -72,8 +73,8 @@ IOWA.ServiceWorkerRegistration = (function() {
           window.location.reload();
         };
 
-        IOWA.Elements.Toast.showMessage('Tap here or refresh the page for the latest content.',
-          tapHandler);
+        IOWA.Elements.Toast.showMessage(
+            'Tap here or refresh the page for the latest content.', tapHandler);
       }
     };
   }

@@ -12,24 +12,21 @@ limitations under the License.
 -->
 
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <!--
-`io-toast` extends `paper-toast` and adds listening capability.
+`io-toast` is a `paper-toast` with listening capabilities.
 
 Example:
 
     <paper-button id="myButton">Example button</paper-button>
     <io-toast text="Your draft has been discarded."></io-toast>
     <script>
-
       document.querySelector('io-toast').listen(
-          document.querySelector('#myButton'),
-          'click',
-          'message'));
+          document.querySelector('#myButton'), 'click', 'message'));
     </script>
 
 @element io-toast
-@extends paper-toast
 -->
 <!--
 Fired when a new toast appears.
@@ -38,11 +35,13 @@ Fired when a new toast appears.
 @param {Object} detail
 @param {Object} detail.message The toasts message.
 -->
-<polymer-element name="io-toast"
-                 extends="paper-toast"
-                 on-core-overlay-close-completed="{{handleOverlayClosed}}">
+<dom-module id="io-toast">
   <template>
     <style>
+      #toastwrapper {
+        @apply(--layout);
+        @apply(--layout-horizontal);
+      }
       .clickable {
         cursor: pointer;
       }
@@ -53,106 +52,149 @@ Fired when a new toast appears.
         padding-left: 24px;
         cursor: pointer;
       }
-
-      ::content .toast-text.toast-action {
-        display: none;
+      paper-toast {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
       }
     </style>
-
-    <div class="{{ {clickable: tapHandler_,} | tokenList }}" on-tap="{{handleTap}}" layout horizontal>
-      <shadow></shadow>
-      <span class="toast-action" hidden?="{{!action}}"
-            on-click="{{handleAction}}"><content></content>
-      </span>
+    <div id="toastwrapper" on-tap="_handleTap"
+         class$="{{_computeClass(_tapHandler)}}">
+      <paper-toast id="internaltoast" duration="[[duration]]" text="[[text]]">
+        <span class="toast-action"
+              on-click="_handleAction" hidden$="{{!action}}">[[!action]]</span>
+      </paper-toast>
     </div>
   </template>
   <script>
-  Polymer({
-    tapHandler_: null,
-    actionHandler_: null,
+    Polymer({
+      is: 'io-toast',
 
-    listeners_: null,
+      properties: {
+        /**
+         * An action link for the toast
+         */
+        action: {
+          type: String,
+          value: null,
+          observer: '_actionChanged'
+        },
+        /**
+         * Duration the toast should show in ms.
+         */
+        duration: {
+          type: Number,
+          value: 3000
+        },
+        _actionHandler: {
+          value: null
+        },
+        _handledAction: {
+          type: Boolean,
+          value: false
+        },
+        _listeners: {
+          value: function() { return []; }
+        },
+        _tapHandler: {
+          value: null
+        }
+      },
 
-    action: null,
+      listeners: {
+        'iron-overlay-closed': '_handleOverlayClosed'
+      },
 
-    handledAction_: false,
+      // detached: function () {
+      //   this._listeners.forEach(function(listener) {
+      //     listener.target.removeEventListener(
+      //         listener.eventType, listener.handler);
+      //   });
+      // },
 
-    created: function() {
-      this.listeners_ = [];
-    },
+      _actionChanged: function () {
+        Polymer.dom(this).textContent = this.action ? this.action : null;
+      },
 
-    detached: function() {
-      this.listeners_.forEach(function(listener) {
-        listener.target.removeEventListener(
-            listener.eventType, listener.handler);
-      });
-    },
+      // /**
+      //  * Makes toast listen to notifications from another element.
+      //  * @method listen
+      //  * @param {Element} el Target sending the notification.
+      //  * @param {string} eventType Notification (event) type.
+      //  * @param {string} messageFieldName Name of the field in event.details
+      //  *    containing the message.
+      //  */
+      // listen: function(el, eventType, messageFieldName) {
+      //   var handler = function(e) {
+      //     this.text = e.detail[messageFieldName];
+      //     this.show();
+      //   }.bind(this);
 
-    actionChanged: function() {
-      this.textContent = this.action ? this.action : null;
-    },
+      //   el.addEventListener(eventType, handler);
 
-    /**
-     * Makes toast listen to notifications from another element.
-     * @method listen
-     * @param {Element} el Target sending the notification.
-     * @param {string} eventType Notification (event) type.
-     * @param {string} messageFieldName Name of the field in event.details
-     *    containing the message for the user.
-     */
-    listen: function(el, eventType, messageFieldName) {
-      var handler = function(e) {
-        this.text = e.detail[messageFieldName];
-        this.show();
-      }.bind(this);
-      el.addEventListener(eventType, handler);
-      this.listeners_.push({
-        target: el,
-        eventType: eventType,
-        handler: handler
-      });
-    },
+      //   this._listeners.push({
+      //     target: el,
+      //     eventType: eventType,
+      //     handler: handler
+      //   });
+      // },
 
-    /**
-     * Shows the message in the toast.
-     * @method showMessage
-     * @param {string} message Message to show.Notification (event) type.
-     * @param {function} opt_tapHandler Optional handler to execute when the toast is tapped.
-     * @param {string} opt_action Optional action link.
-     * @param {function} opt_actionHandler Optional handler to execute when the action is tapped.
-     */
-    showMessage: function(message, opt_tapHandler, opt_action, opt_actionHandler) {
-      this.text = message;
-      this.tapHandler_ = opt_tapHandler;
-      this.action = opt_action;
-      this.actionHandler_ = opt_actionHandler;
-      this.show();
-      this.fire('toast-message', {message: message});
-    },
+      show: function() {
+        this.$.internaltoast.show();
+      },
 
-    handleTap: function() {
-      if (typeof this.tapHandler_ == 'function' && !this.handledAction_) {
-        this.tapHandler_();
-        this.dismiss();
+      close: function() {
+        this.$.internaltoast.close();
+      },
+
+      /**
+       * Shows a message in the toast.
+       * @method showMessage
+       * @param {string} message Message to show.Notification (event) type.
+       * @param {function} opt_tapHandler Optional handler to execute when the
+       *     toast is tapped.
+       * @param {string} opt_action Optional action link.
+       * @param {function} opt_actionHandler Optional handler to execute when
+       *     the action is tapped.
+       */
+      showMessage: function(message, opt_tapHandler, opt_action, opt_actionHandler) {
+        this.text = message;
+        this._tapHandler = opt_tapHandler;
+        this.action = opt_action;
+        this._actionHandler = opt_actionHandler;
+        this.$.internaltoast.show();
+        this.fire('toast-message', {message: message});
+      },
+
+      _handleTap: function() {
+        if (typeof this._tapHandler == 'function' && !this._handledAction) {
+          this._tapHandler();
+          this.$.internaltoast.close();
+        }
+        this._handledAction = false;
+      },
+
+      _handleAction: function(e, detail) {
+        if (typeof this._actionHandler == 'function') {
+          e.stopPropagation();
+          this._actionHandler();
+          this._handledAction = true;
+          // Need because handleTap will also be called from a tap.
+          // This handle is a click.
+          this.$.internaltoast.close();
+        }
+      },
+      // Since there's a single <io-toast> element that's reused throughout
+      // the site, make sure that if a tapHandler was associated with a
+      // specific occurrence of the toast's display, it gets removed once the
+      // toast closes.
+      _handleOverlayClosed: function() {
+        this._tapHandler = null;
+      },
+
+      _computeClass: function(tapHandler) {
+        return tapHandler ? 'clickable': '';
       }
-      this.handledAction_ = false;
-    },
-
-    handleAction: function(e) {
-      if (typeof this.actionHandler_ == 'function') {
-        e.stopPropagation();
-        this.actionHandler_();
-        this.handledAction_ = true; // Need because handleTap will also be called from a tap. This handle is a click.
-        this.dismiss();
-      }
-    },
-
-    // Since there's a single <io-toast> element that's reused throughout the site, make sure that
-    // if a tapHandler was associated with a specific occurrence of the toast's display, it gets
-    // removed once the toast closes.
-    handleOverlayClosed: function() {
-      this.tapHandler_ = null;
-    }
-  });
+    });
   </script>
-</polymer-element>
+</dom-module>
+

@@ -16,11 +16,11 @@
 
 $name: 'page-videos';
 
-@import '../base/_vars';
-@import '../base/_color';
-@import '../base/_breakpoints';
-@import '../base/_typography';
-@import '../base/_layout';
+@import '../base/vars';
+@import '../base/color';
+@import '../base/breakpoints';
+@import '../base/typography';
+@import '../base/layout';
 
 
 ##{$name} {
@@ -61,7 +61,7 @@ $playButtonHeightWidth: 40px;
   height: 60px;
 }
 
-core-list {
+iron-list {
   height: 100%;
   .item {
     padding: 0 3px; // leave space for box shadow.
@@ -78,7 +78,7 @@ core-list {
 }
 
 .card__video {
-  core-image {
+  iron-image {
     border-radius: inherit;
     width: 100%;
   }
@@ -152,7 +152,7 @@ main {
       left: $mobileKeyline;
     }
   }
-  core-list {
+  iron-list {
     .divider {
       display: none;
     }

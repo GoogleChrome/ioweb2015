@@ -1,5 +1,5 @@
 <!--
-Copyright 2015 Google Inc. All rights reserved.
+Copyright 2016 Google Inc. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -12,8 +12,9 @@ limitations under the License.
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<!-- <link rel="import" href="../bower_components/google-apis/google-js-api.html"> -->
-<link rel="import" href="../bower_components/google-apis/google-client-api.html">
+<link rel="import" href="../bower_components/google-apis/google-js-api.html">
+<!-- <link rel="import" href="../bower_components/google-apis/google-client-api.html"> -->
+<!-- <link rel="import" href="../bower_components/google-apis/google-client-loader.html"> -->
 
 <!--
 `<google-signin>` uses Google Sign-in 2.0 to authorize users using Google's
@@ -21,9 +22,7 @@ OAuth 2.0 flow. See https://developers.google.com/identity/sign-in/web/sign-in.
 
 #### Example
 
-    <google-signin></google-signin>
-
-@element google-signin
+    <google-signin load></google-signin>
 -->
 <!--
 Fired when the signed in state of the user changes.
@@ -41,430 +40,173 @@ Fired when sign in fails for some reason.
 @param {Object} detail
 @param {Object} detail.error The reason for sign in failure.
 -->
-<polymer-element name="google-signin" attributes="clientId scopes signedIn load" hidden>
-<template>
-  <template if="{{load}}">
-    <google-js-api on-js-api-load="{{onLoadAuth}}"></google-js-api>
+<dom-module id="google-signin">
+  <template>
+    <template is="dom-if" if="[[load]]">
+      <google-js-api on-js-api-load="onLoadAuth"></google-js-api>
+    </template>
   </template>
-</template>
-<script>
-(function() {
+  <script>
+    (function () {
+      var AUTH_ENDPOINT = 'api/v1/auth';
 
-  var AUTH_ENDPOINT = 'api/v1/auth';
+      Polymer({
+        is: 'google-signin',
 
-  Polymer({
-    publish: {
-      /**
-       * A Google Developers client Id.
-       *
-       * @attribute clientId
-       * @type string
-       * @default null
-       */
-      clientId: null,
+        hostAttributes: {hidden: true},
 
-      /**
-       * A space-separated list of OAuth2 scopes.
-       *
-       * @attribute scopes
-       * @type string
-       * @default null
-       */
-      scopes: null,
+        properties: {
+          /**
+           * A Google Developers client Id.
+           */
+          clientId: {
+            type: String,
+            value: null,
+            notify: true
+          },
 
-      /**
-       * If true, the is signed in.
-       *
-       * @attribute signedIn
-       * @type bool
-       * @default false
-       */
-      signedIn: false,
+          /**
+           * If true, the JS client library is loaded and auth is initialized.
+           */
+          load: {
+            type: Boolean,
+            value: false
+          },
 
-      /**
-       * The logged in user.
-       *
-       * @attribute user
-       * @type object
-       * @default {}
-       */
-      user: null,
+          /**
+           * A space-separated list of OAuth2 scopes.
+           */
+          scopes: {
+            type: String,
+            value: null
+          },
 
-      /**
-       * If true, the JS client library is loaded and auth is initialized.
-       *
-       * @attribute load
-       * @type bool
-       * @default false
-       */
-      load: false
-    },
+          /**
+           * If true, the is signed in.
+           */
+          signedIn: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
 
-    created: function() {
-      if (window.ENV === 'dev' || location.hostname === 'localhost') {
-        this.cookiePolicy = 'single_host_origin';
-      } else {
-        this.cookiePolicy = location.protocol + '//' + location.host;
-      }
+          /**
+           * The logged in user.
+           */
+          user: {
+            type: Object,
+            value: null,
+            notify: true
+          }
+        },
 
-      this.signinChangedHandler_ = this.signinChangedHandler.bind(this);
-    },
+        created: function() {
+          if (window.ENV === 'dev' || location.hostname === 'localhost') {
+            this.cookiePolicy = 'single_host_origin';
+          } else {
+            this.cookiePolicy = location.protocol + '//' + location.host;
+          }
+          this.signinChangedHandler_ = this.signinChangedHandler.bind(this);
+        },
 
-    onLoadAuth: function(e, detail, sender) {
-
-      gapi.load('auth2', function() {
-
-        // Init auth.
-        this.auth2 = gapi.auth2.init({
-          client_id: this.clientId,
-          scope: this.scopes,
-          fetch_basic_profile: true,
-          cookie_policy: this.cookiePolicy
-        });
-
-        this.auth2.isSignedIn.listen(this.signinChangedHandler_);
-      }.bind(this));
-    },
-
-    signIn: function() {
-      if (!this.auth2 || this.auth2.isSignedIn.get()) {
-        return;
-      }
-
-      // Sign the user in.
-      // this.auth2.signIn().then(function() {
-
-        // Sign in user + offline access for server calls.
-        // TODO: check with server if user already has token.
-        this.auth2.grantOfflineAccess({'redirect_uri': 'postmessage'}).then(function(resp) {
-          // We have a one time code, but we're not signed in yet with a current
-          // user and access token. Stash the one time for signinChangedHandler
-          // to post it to the server.
-          this.oneTimeCode = resp.code;
-        }.bind(this), this.onSignInError);
-      // }.bind(this));
-    },
-
-    signOut: function() {
-      this.auth2.signOut().then(undefined, this.onSignInError.bind(this));
-    },
-
-    signinChangedHandler: function(signedIn) {
-      this.signedIn = signedIn;
-      this.currentUser = this.auth2.currentUser.get();
-
-      var token = this.currentUser.getAuthResponse();
-
-      if (this.signedIn) {
-        var profile = this.currentUser.getBasicProfile();
-        this.user = {
-          id: profile.getId(),
-          name: profile.getName(),
-          picture: profile.getImageUrl() || 'images/schedule/profile_placeholder.png',
-          email: profile.getEmail(),
-          tokenResponse: token
-        };
-
-        if (this.oneTimeCode) {
-          this.sendCodeToServer(this.oneTimeCode, function() {
-            this.fire('signin-change', {signedIn: true, user: this.user});
+        onLoadAuth: function(e, detail) {
+          gapi.load('auth2', function () {
+            // Init auth.
+            this.auth2 = gapi.auth2.init({
+              client_id: this.clientId,
+              scope: this.scopes,
+              fetch_basic_profile: true,
+              cookie_policy: this.cookiePolicy
+            });
+            this.auth2.isSignedIn.listen(this.signinChangedHandler_);
           }.bind(this));
-          this.oneTimeCode = null;
-        } else {
-          this.fire('signin-change', {signedIn: true, user: this.user});
-        }
+        },
 
-      } else {
-        this.user = null;
-        this.signedIn = false;
-        this.fire('signin-change', {signedIn: false, user: null});
-      }
-    },
-
-    sendCodeToServer: function(oneTimeCode, opt_callback) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', AUTH_ENDPOINT);
-
-      var token = this.auth2.currentUser.get().getAuthResponse();
-
-      xhr.setRequestHeader('Authorization', 'Bearer ' + (token.id_token || token.access_token));
-      xhr.setRequestHeader('Content-Type', 'application/json');
-
-      xhr.onload = function(e) {
-
-        if (e.target.status === 200) {
-          opt_callback && opt_callback();
-        } else {
-          this.signOut(); // One-time token could not be saved in backend. Log user out.
-
-          // handle a special case where the server does not possess an offline token anymore
-          // and so the whole auth flow should be retried again.
-          if (e.target.status === 498) {
-            // we could do this.auth2.disconnect().then(this.signIn.bind(this))
-            // but chrome blocks the popup window. so, just let the user tap
-            // on 'sign in' button again.
-            this.auth2.disconnect();
+        signIn: function() {
+          if (!this.auth2 || this.auth2.isSignedIn.get()) {
+            return;
           }
+          // Sign the user in.
+          // this.auth2.signIn().then(function() {
+          // Sign in user + offline access for server calls.
+          // TODO: check with server if user already has token.
+          this.auth2.grantOfflineAccess({'redirect_uri': 'postmessage'}).then(function(resp) {
+            // We have a one time code, but we're not signed in yet with a current
+            // user and access token. Stash the one time for signinChangedHandler
+            // to post it to the server.
+            this.oneTimeCode = resp.code;
+          }.bind(this), this.onSignInError);
+        },
 
-          this.fire('signin-fail', {
-            error: 'Server-side auth failed with ' + e.target.status,
-            oneTimeCodeFail: true
-          });
-        }
-      }.bind(this);
+        signOut: function () {
+          this.auth2.signOut().then(undefined, this.onSignInError.bind(this));
+        },
 
-      xhr.send(JSON.stringify({code: oneTimeCode}));
-    },
-
-    onSignInError: function(error) {
-      console.error(error);
-    }
-  });
-
-})();
-</script>
-</polymer-element>
-
-
- <!--
-`<google-signin>` uses Google Sign-in 1.0 to authorize users using Google's
-OAuth 2.0 flow. See https://developers.google.com/identity/sign-in/web/sign-in.
-
-#### Example
-
-    <google-signin clientId="..." scopes="..."></google-signin>
-
-@element google-signin
--->
-<!--
-Fired when the signed in state of the user changes.
-
-@event signin-change
-@param {Object} detail
-@param {Object} detail.signedIn True if the user is authenticated.
-@param {Object} detail.user The current user.
-@param {Object} detail.response The current user's token response.
--->
-<!--
-Fired when sign in fails for some reason.
-
-@event signin-fail
-@param {Object} detail
-@param {Object} detail.error The reason for sign in failure.
--->
-<!-- <polymer-element name="google-signin" attributes="clientId scopes signedIn load">
-<template>
-  <style>
-    :host {
-      display: none;
-    }
-  </style>
-  <template if="{{load}}">
-    <google-client-api on-api-load="{{onLoadAuth}}"></google-client-api>
-  </template>
-</template>
-<script>
-(function() {
-
-  var AUTH_ENDPOINT = 'api/v1/auth';
-
-  Polymer({
-    publish: {
-      /**
-       * A Google Developers client Id.
-       *
-       * @attribute clientId
-       * @type string
-       * @default null
-       */
-      clientId: null,
-
-      /**
-       * A space-separated list of OAuth2 scopes.
-       *
-       * @attribute scopes
-       * @type string
-       * @default null
-       */
-      scopes: null,
-
-      /**
-       * If true, the is signed in.
-       *
-       * @attribute signedIn
-       * @type bool
-       * @default false
-       */
-      signedIn: false,
-
-      /**
-       * The logged in user.
-       *
-       * @attribute user
-       * @type object
-       * @default {}
-       */
-      user: null,
-
-      /**
-       * If true, the JS client library is loaded and auth is initialized.
-       *
-       * @attribute load
-       * @type bool
-       * @default false
-       */
-      load: false
-    },
-
-    created: function() {
-      if (window.ENV === 'dev' || location.hostname === 'localhost') {
-        this.cookiePolicy = 'single_host_origin';
-      } else {
-        this.cookiePolicy = location.protocol + '//' + location.host;
-      }
-
-      this.signinChangedHandler_ = this.signinChangedHandler.bind(this);
-    },
-
-    onLoadAuth: function(e, detail, sender) {
-      this.cancelAsync(this.refreshTokenHandle_);
-
-      // gapi.auth.authorize() doesn't do popup.
-      gapi.auth.authorize({
-        client_id: this.clientId,
-        scope: this.scopes,
-        immediate: true,
-        cookie_policy: this.cookiePolicy
-      }, this.signinChangedHandler_);
-    },
-
-    signIn: function() {
-      if (this.signedIn) {
-        return;
-      }
-
-      gapi.auth.signIn({
-        clientid: this.clientId,
-        scope: this.scopes,
-        immediate: false,
-        accesstype: 'offline',
-        redirecturi: 'postmessage',
-        cookiepolicy: this.cookiePolicy,
-        callback: this.signinChangedHandler_
-      });
-    },
-
-    signOut: function() {
-      gapi.auth.signOut(); // Call after tokens are revoked.
-
-      this.signedIn = false;
-      this.user = null;
-
-      this.cancelAsync(this.refreshTokenHandle_);
-
-      this.fire('signin-change', {signedIn: false, user: null});
-    },
-
-    disconnect: function() {
-      if (!gapi.auth.getToken()) {
-        return;
-      }
-
-      var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' +
-                      gapi.auth.getToken().access_token +
-                      '&callback=%%callback%%';
-
-      var lib = document.createElement('core-shared-lib');
-      lib.url = revokeUrl;
-    },
-
-    signinChangedHandler: function(authResult) {
-
-      if (authResult && !authResult.error) {
-        // Only send one-time code to server after the consent screen (first login).
-        if (authResult.status.signed_in && authResult.code &&
-            authResult.status.method === 'PROMPT') {
-          this.sendCodeToServer(authResult.code, this.getBasicProfile.bind(this));
-        } else {
-          this.getBasicProfile();
-        }
-      } else {
-        this.fire('signin-fail', {error: authResult.error});
-
-        switch (authResult.error) {
-          case 'user_signed_out':
-            this.signedIn = false;
+        signinChangedHandler: function(signedIn) {
+          this.signedIn = signedIn;
+          this.currentUser = this.auth2.currentUser.get();
+          var token = this.currentUser.getAuthResponse();
+          if (this.signedIn) {
+            var profile = this.currentUser.getBasicProfile();
+            this.user = {
+              id: profile.getId(),
+              name: profile.getName(),
+              picture: profile.getImageUrl() || 'images/schedule/profile_placeholder.png',
+              email: profile.getEmail(),
+              tokenResponse: token
+            };
+            if (this.oneTimeCode) {
+              this.sendCodeToServer(this.oneTimeCode, function() {
+                this.fire('signin-change', {
+                  signedIn: true,
+                  user: this.user
+                });
+              }.bind(this));
+              this.oneTimeCode = null;
+            } else {
+              this.fire('signin-change', {signedIn: true, user: this.user});
+            }
+          } else {
             this.user = null;
-            this.cancelAsync(this.refreshTokenHandle_);
-            break;
-          case 'immediate_failed':
-            break;
-          case 'access_denied':
-            break;
-          default:
-            console.error('Login error:', authResult.error);
-            break;
-        }
-      }
-    },
-
-    getBasicProfile: function() {
-      // Get user's basic profile info, pic, email.
-      gapi.client.load('oauth2', 'v2', function () {
-        gapi.client.oauth2.userinfo.get().execute(function(resp) {
-          this.user = resp;
-          this.user.tokenResponse = gapi.auth.getToken();
-          this.user.picture = this.user.picture || 'images/schedule/profile_placeholder.png';
-
-          // Refresh the token 15 min before expiration time. This is important
-          // if the user has the page open for a long period of time. The token
-          // should remain valid without a page reload.
-          var expiresIn = parseInt(this.user.tokenResponse.expires_at + '000'); // Need to pad + parse API result :\
-          var refreshTokenMsTimeout_ = (new Date(expiresIn) - new Date()) - (15 * 60 * 1000);
-          this.refreshTokenHandle_ = this.async(this.onLoadAuth, null, refreshTokenMsTimeout_);
-
-          this.fire('signin-change', {signedIn: true, user: this.user});
-
-          this.signedIn = true;
-        }.bind(this));
-      }.bind(this));
-    },
-
-    sendCodeToServer: function(oneTimeCode, callback, opt_onSignInError) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', AUTH_ENDPOINT);
-
-      var token = gapi.auth.getToken();
-
-      xhr.setRequestHeader('Authorization', 'Bearer ' + (token.id_token || token.access_token));
-      xhr.setRequestHeader('Content-Type', 'application/json');
-
-      xhr.onload = function(e) {
-        if (e.target.status === 200) {
-          callback();
-        } else {
-          this.signOut(); // One-time token could not be saved in backend. Log user out.
-
-          // handle a special case where the server does not possess an offline token anymore
-          // and so the whole auth flow should be retried again.
-          if (e.target.status === 498) {
-            // we could do this.auth2.disconnect().then(this.signIn.bind(this))
-            // but chrome blocks the popup window. so, just let the user tap
-            // on 'sign in' button again.
-            this.disconnect();
+            this.signedIn = false;
+            this.fire('signin-change', {signedIn: false, user: null});
           }
+        },
 
-          this.fire('signin-fail', {
-            error: 'One-time token was not sent to server',
-            oneTimeCodeFail: true
-          });
+        sendCodeToServer: function (oneTimeCode, opt_callback) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', AUTH_ENDPOINT);
+          var token = this.auth2.currentUser.get().getAuthResponse();
+          xhr.setRequestHeader(
+              'Authorization', 'Bearer ' + (token.id_token || token.access_token));
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = function (e) {
+            if (e.target.status === 200) {
+              opt_callback && opt_callback();
+            } else {
+              this.signOut();
+              // One-time token could not be saved in backend. Log user out.
+              // handle a special case where the server does not possess an offline token anymore
+              // and so the whole auth flow should be retried again.
+              if (e.target.status === 498) {
+                // we could do this.auth2.disconnect().then(this.signIn.bind(this))
+                // but chrome blocks the popup window. so, just let the user tap
+                // on 'sign in' button again.
+                this.auth2.disconnect();
+              }
+              this.fire('signin-fail', {
+                error: 'Server-side auth failed with ' + e.target.status,
+                oneTimeCodeFail: true
+              });
+            }
+          }.bind(this);
+          xhr.send(JSON.stringify({ code: oneTimeCode }));
+        },
+
+        onSignInError: function (error) {
+          console.error(error);
         }
-      }.bind(this);
-
-      xhr.send(JSON.stringify({code: oneTimeCode}));
-    }
-  });
-})();
-</script>
-</polymer-element>
- -->
+      });
+    }());
+  </script>
+</dom-module>

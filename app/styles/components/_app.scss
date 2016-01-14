@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-@import '../base/_vars';
-@import '../base/_typography';
+@import '../base/vars';
+@import '../base/typography';
 
 html, body {
   font-family: 'Helvetica', 'Arial', 'sans-serif';
@@ -23,7 +23,7 @@ html, body {
 }
 
 .noscroll {
-  core-drawer-panel [main] {
+  paper-drawer-panel [main] {
     overflow: hidden;
   }
 }
@@ -37,6 +37,18 @@ html, body {
 
 .strong {
   font-weight: bold;
+}
+
+.fit, [fit] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.relative, [relative] {
+  position: relative;
 }
 
 li {
@@ -130,7 +142,7 @@ paper-progress {
 }
 
 .bg-cyan {
-  background-color: $color-cyan-500;
+  background-color: $color-cyan-500 !important;
   color: #07434D;
 
   h1, h2, h3, h4 {
@@ -192,7 +204,7 @@ paper-progress {
   position: fixed !important;  // iOS
   font-size: 20px;
   font-weight: 500;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.5) !important;
   color: #fff;
   text-transform: uppercase;
   transition: transform 400ms cubic-bezier(0,0,0.2,1);
@@ -346,6 +358,7 @@ paper-progress {
 .fullvideo__container {
   transform-origin: 0 0;
   will-change: transform; // https://github.com/GoogleChrome/ioweb2015/issues/254
+  margin: 0;
 
   .fullvideo_thumbnail {
     width: 100%;
@@ -360,20 +373,26 @@ paper-progress {
   }
 }
 
-.core-overlay-backdrop {
-  opacity: 0.4 !important;
-}
-
 .video_overlay-dialog {
   height: 100%;
   width: 100%;
+  max-height: 100%; // paper-dialog override.
+  max-width: 100%;  // paper-dialog override.
 
   paper-icon-button {
-    z-index: 10;
-    color: white;
     position: absolute;
+    z-index: 10;
+    padding: 0;  // paper-dialog override.
+    margin: 0;  // paper-dialog override.
+    color: white;
     top: $mobileKeyline;
     left: $mobileKeyline;
+
+    // Ensure sizing for some reason.
+    iron-icon {
+      height: 24px;
+      width: 24px;
+    }
   }
 }
 

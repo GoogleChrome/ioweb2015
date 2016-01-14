@@ -146,17 +146,11 @@ IOWA.Router_ = function(window) {
    */
   Router.prototype.importPage = function() {
     var pageName = this.state.end.page;
+
     return new Promise(function(resolve, reject) {
-      var importURL = pageName + '?partial';
-      // TODO(ericbidelman): update call when
-      // github.com/Polymer/polymer/pull/1128 lands.
-      Polymer.import([importURL], function() {
+      Polymer.Base.importHref(pageName + '?partial', function(e) {
         // Don't proceed if import didn't load correctly.
-        var htmlImport = document.querySelector(
-            'link[rel="import"][href="' + importURL + '"]');
-        if (htmlImport && !htmlImport.import) {
-          return;
-        }
+        var htmlImport = e.target.import;
         // FF doesn't execute the <script> inside the main content <template>
         // (inside page partial import). Instead, the first time the partial is
         // loaded, find any script tags in and make them runnable by appending
@@ -165,7 +159,7 @@ IOWA.Router_ = function(window) {
           var contentTemplate = document.querySelector(
              '#template-' + pageName + '-content');
           if (!contentTemplate) {
-            var containerTemplate = htmlImport.import.querySelector(
+            var containerTemplate = htmlImport.querySelector(
                 '[data-ajax-target-template="template-content-container"]');
             var scripts = containerTemplate.content.querySelectorAll('script');
             Array.prototype.forEach.call(scripts, function(node, i) {
@@ -174,42 +168,55 @@ IOWA.Router_ = function(window) {
           }
         }
         // Update content of the page.
-        resolve(htmlImport.import);
-      });
+        resolve(htmlImport);
+      }, function(e) {
+        console.error('Page could not be dynamically loaded', e);
+        IOWA.Util.reportError(e);
+        reject(e);
+      }, true);
     });
   };
 
   /**
-   * Attaches imported templates and loads the content for the current page.
+   * Swaps in partial from new imported template content.
    * @return {Promise}
    * @private
    */
   Router.prototype.renderTemplates = function(importContent) {
     var pageName = this.state.end.page;
+
     return new Promise(function(resolve, reject) {
       // Add freshly fetched templates to DOM, if not yet present.
       var newTemplates = importContent.querySelectorAll('.js-ajax-template');
-      for (var i = 0; i < newTemplates.length; i++) {
-        var newTemplate = newTemplates[i];
-        if (!document.getElementById(newTemplate.id)) {
-          document.body.appendChild(newTemplate);
+      for (var i = 0; i < newTemplates.length; ++i) {
+        var newTmpl = newTemplates[i];
+        if (!document.getElementById(newTmpl.id)) {
+          document.body.appendChild(newTmpl);
         }
       }
       // Replace current templates content with new one.
-      var newPageTemplates = document.querySelectorAll(
-          '.js-ajax-' + pageName);
-      for (var j = 0, length = newPageTemplates.length; j < length; j++) {
-        var template = newPageTemplates[j];
-        var templateToReplace = document.getElementById(
-            template.getAttribute('data-ajax-target-template'));
-        if (templateToReplace) {
-          templateToReplace.setAttribute('ref', template.id);
+      var existingTemplates = document.querySelectorAll('.js-ajax-' + pageName);
+      for (var j = 0; j < existingTemplates.length; ++j) {
+        var tmpl = existingTemplates[j];
+        var template = document.getElementById(
+            tmpl.getAttribute('data-ajax-target-template'));
+        if (template) {
+          // template.setAttribute('ref', tmpl.id);
+          template.innerHTML = '';
+          // var content = document.importNode(tmpl.content, true);
+          var content = tmpl.content;
+          // var content = tmpl.stamp().root;
+
+          // TODO: polymer 1.0 update. Find solution for dynamic pages.
+          // For page transitions, content does not contain upgraded elements.
+          template.appendChild(content);
         }
       }
+
       // Wait for the template ref= to settle.
-      IOWA.Elements.Template.async(function() {
+      // IOWA.Elements.Template.async(function() {
         resolve();
-      });
+      // });
     });
   };
 
@@ -233,7 +240,7 @@ IOWA.Router_ = function(window) {
   };
 
   /**
-   * Updates the state of UI elements based on the curent state of the router.
+   * Updates the state of UI elements based on the current state of the router.
    * @private
    */
   Router.prototype.updateUIstate = function() {
@@ -242,7 +249,9 @@ IOWA.Router_ = function(window) {
 
     // Update menu/drawer/subtabs selected item.
     this.t.selectedPage = pageName;
-    this.t.pages[pageName].selectedSubpage = this.state.current.subpage;
+    // this.t.pages[pageName].selectedSubpage = this.state.current.subpage;
+    this.t.set(['pages', pageName, 'selectedSubpage'], this.state.current.subpage);
+
     IOWA.Elements.DrawerMenu.selected = pageName;
 
     // Update some elements only if navigating to a new page.
@@ -258,7 +267,8 @@ IOWA.Router_ = function(window) {
         MASTHEAD_BG_CLASS_REGEX, ' ' + pageMeta.mastheadBgClass + ' ');
       // Reset subpage, since leaving the page.
       var startPage = this.state.start.page;
-      this.t.pages[startPage].selectedSubpage = startPage.defaultSubpage;
+      // this.t.pages[startPage].selectedSubpage = startPage.defaultSubpage;
+      this.t.set(['pages', startPage, 'selectedSubpage'], startPage.defaultSubpage);
       // Scroll to top of new page.
       IOWA.Elements.ScrollContainer.scrollTop = 0;
     }
@@ -358,6 +368,7 @@ IOWA.Router_ = function(window) {
     var newSubpage = IOWA.Elements.Main.querySelector(
         '.subpage-' + this.state.end.subpage);
     var router = this;
+
     // Run subpage transition if both subpages exist.
     if (oldSubpage && newSubpage) {
       // Play exit sequence.

@@ -74,19 +74,7 @@
     IOWA.Notifications.init();
 
     initWorker();
-
-    CoreStyle.g.paperInput.labelColor = '#008094';
-    CoreStyle.g.paperInput.focusedColor = '#008094';
   }
-
-  window.addEventListener('core-media-change', function(e) {
-    // Disable swipping on tablet/desktop.
-    if (e.target.id === 'mq-phone') {
-      var isPhoneSize = e.detail.matches;
-      IOWA.Elements.Drawer.querySelector('[drawer]').hidden = !isPhoneSize;
-      IOWA.Elements.Drawer.disableSwipe = !isPhoneSize;
-    }
-  });
 
   window.addEventListener('keydown', function(e) {
     // ESC closes any overlays.
@@ -109,7 +97,7 @@
       if (template.mapGalleryActive) {
         template.closeMapGallery();
       }
-      var live = document.querySelector('io-live[openWidget]');
+      var live = document.querySelector('io-live[open-widget]');
       if (live) {
         live.openWidget = false;
       }
@@ -122,7 +110,8 @@
   });
 
   window.addEventListener('offline', function(e) {
-    IOWA.Elements.Toast.showMessage('Offline. Changes you make to My Schedule will be saved for later.');
+    IOWA.Elements.Toast.showMessage(
+        'Offline. Changes you make to My Schedule will be saved for later.');
   });
 
   // Watch for sign-in changes to fetch user schedule, update UI, etc.
@@ -158,6 +147,6 @@
   if (IOWA.Util.supportsHTMLImports) {
     afterImports();
   } else {
-    document.addEventListener('polymer-ready', afterImports);
+    document.addEventListener('WebComponentsReady', afterImports);
   }
 })();

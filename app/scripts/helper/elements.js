@@ -17,36 +17,19 @@
 IOWA.Elements = (function() {
   "use strict";
 
-  function showSigninHelp() {
-    var signinIntroEl = document.querySelector('.card__signin-intro');
-    var showSigninIntro = !JSON.parse(localStorage.getItem('showSigninIntro'));
-    if (showSigninIntro) {
-      signinIntroEl.addEventListener('core-overlay-close-completed', function(e) {
-        e.stopPropagation();
-        localStorage.setItem('showSigninIntro', JSON.stringify(true));
-
-        // Allow taps on the toast/off the toast to dismiss it. Also re-establish
-        // the reload handler for the "Tap to refresh content" toast.
-        IOWA.Elements.Toast.autoCloseDisabled = false;
-        IOWA.Elements.Toast.tapHandler_ = function() {
-          window.location.reload();
-        };
-
-        signinIntroEl.parentElement.removeChild(signinIntroEl);
-        signinIntroEl = null;
-      });
-
-      signinIntroEl.opened = true;
-    } else {
-      signinIntroEl.parentElement.removeChild(signinIntroEl);
-      IOWA.Elements.Toast.autoCloseDisabled = false;
-    }
-  }
+  const ANALYTICS_LINK_ATTR = 'data-track-link';
 
   function optionallyLaunchExperiment() {
     if (window.location.search.indexOf('experiment') > -1) {
       IOWA.Elements.FAB.onFabClick();
     }
+  }
+
+  function disableDrawerIfNotMobile(mq) {
+    // Disable swiping drawer on tablet/desktop.
+    var isPhoneSize = mq.queryMatches;
+    IOWA.Elements.Drawer.querySelector('[drawer]').hidden = !isPhoneSize;
+    IOWA.Elements.Drawer.disableSwipe = !isPhoneSize;
   }
 
   function updateElements() {
@@ -58,13 +41,13 @@ IOWA.Elements = (function() {
       IOWA.Elements.GoogleSignIn.load = true;
 
       // Deep link into a subpage.
-      var tpl = IOWA.Elements.Template;
+      var t = IOWA.Elements.Template;
       var parsedUrl = IOWA.Router.parseUrl(window.location.href);
-      var defaultSubpage = tpl.pages[tpl.selectedPage].defaultSubpage;
+      var defaultSubpage = t.pages[t.selectedPage].defaultSubpage;
       var selectedSubpage = parsedUrl.subpage || defaultSubpage;
       var subpage = document.querySelector('.subpage-' + selectedSubpage);
       if (subpage) {
-        tpl.pages[tpl.selectedPage].selectedSubpage = selectedSubpage;
+        t.set(['pages', t.selectedPage, 'selectedSubpage'], selectedSubpage);
         subpage.classList.add('active');
       }
 
@@ -73,20 +56,19 @@ IOWA.Elements = (function() {
           // Fire event when the page transitions are final.
           IOWA.Elements.Template.fire('page-transition-done');
           // Run page's custom onPageTransitionDone handlers, if present.
-          if (tpl.pages[tpl.selectedPage].onPageTransitionDone) {
-            tpl.pages[tpl.selectedPage].onPageTransitionDone();
+          if (t.pages[t.selectedPage].onPageTransitionDone) {
+            t.pages[t.selectedPage].onPageTransitionDone();
           }
           optionallyLaunchExperiment();
           IOWA.ServiceWorkerRegistration.register();
-          showSigninHelp(); // show signin help popup on page load.
         }
       );
     });
 
     var main = document.querySelector('.io-main');
 
-    var drawer = document.querySelector('core-drawer-panel');
-    drawer.addEventListener('core-activate', function(e) {
+    var drawer = document.querySelector('paper-drawer-panel');
+    drawer.addEventListener('iron-activate', function(e) {
       this.closeDrawer();
     });
 
@@ -120,13 +102,34 @@ IOWA.Elements = (function() {
     IOWA.Elements.Footer = footer;
     IOWA.Elements.GoogleSignIn = signin;
 
+    // TODO: consider moving everything under template dom-bind to take advantage
+    // of data bindings.
+    var phoneMQ = document.getElementById('mq-phone');
+    phoneMQ.addEventListener('query-matches-changed', function() {
+      disableDrawerIfNotMobile(phoneMQ);
+    });
+    disableDrawerIfNotMobile(phoneMQ); // Do setup for initial page load.
+
     // Kickoff a11y helpers for elements
     IOWA.A11y.init();
 
     // Do top secret stuff.
-    IOWA.Request.xhrPromise('GET', 'api/v1/easter-egg').then(function(response) {
-      IOWA.Elements.Template.eeFooterLink = response.link;
-    });
+    // IOWA.Request.xhrPromise('GET', 'api/v1/easter-egg').then(function(response) {
+    //   IOWA.Elements.Template.eeFooterLink = response.link;
+    // });
+
+// var t = document.createElement('template', 'dom-bind'),
+// span = document.createElement('span');
+// span.innerHTML = document.getElementById('template-masthead-container').innerHTML;
+// t.content.appendChild(span);
+// //t.hello = 'hey';
+// IOWA.Elements.MastheadMeta.appendChild(t);
+
+// IOWA.Elements.MastheadMeta.appendChild(
+        // document.getElementById('template-masthead-container').stamp().root);
+// IOWA.Elements.Main.appendChild(
+        // document.getElementById('template-content-container').stamp().root);
+
   }
 
   function init() {
@@ -147,6 +150,7 @@ IOWA.Elements = (function() {
     template.scheduleData = null;
     template.savedSessions = [];
     template.eeFooterLink = null;
+    template.settingsIOReminder = false;
 
     // Sign-in defaults.
     template.isSignedIn = false;
@@ -339,13 +343,6 @@ IOWA.Elements = (function() {
       return day;
     };
 
-    template.isSessionFinishedFilter = function(session) {
-      if (!session) {
-        return;
-      }
-      return new Date(session.endTimestamp) < Date.now();
-    };
-
     template.featuredSessionsFilter = function(sessions) {
       if (!sessions) {
         return [];
@@ -408,7 +405,7 @@ IOWA.Elements = (function() {
       nav.classList.toggle('active');
     };
 
-    template.closeVideoCard = function(e, detail, sender) {
+    template.closeVideoCard = function(e, detail) {
       this.cardVideoTakeover(this.currentCard, true);
       this.toggleVideoOverlayNav();
     };
@@ -501,11 +498,12 @@ IOWA.Elements = (function() {
       }.bind(this);
     };
 
-    template.playVideo = function(e, detail, sender) {
-      this.currentCard = sender;
+    template.playVideo = function(e, detail) {
+      this.currentCard = Polymer.dom(e).rootTarget;
       this.fullscreenVideoActive = true; // Active the placeholder template.
 
-      IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+      IOWA.Analytics.trackEvent(
+          'link', 'click', this.currentCard.getAttribute(ANALYTICS_LINK_ATTR));
 
       // Wait one rAF for template to have stamped.
       this.async(function() {
@@ -513,56 +511,73 @@ IOWA.Elements = (function() {
       });
     };
 
-    template.openVideo = function(e, detail, sender) {
-      this.currentCard = sender;
-      this.fullscreenVideoActive = true; // Active the placeholder template.
+    template.openVideo = function(e, detail) {
+      var path = Polymer.dom(e).path;
+
+      var target = null;
+      for (var i = 0; i < path.length; ++i) {
+        var el = path[i];
+        if (el.classList && el.classList.contains('card__video')) {
+          target = el;
+          break;
+        }
+      }
+
+      if (!target) {
+        return;
+      }
+
+      this.currentCard = target; // Polymer.dom(e).rootTarget;
+      this.fullscreenVideoActive = true; // Activate the placeholder template.
+
+      Polymer.dom.flush();
 
       // Note: IE10 doesn't support .dataset.
-      var videoId = this.toVideoIdFilter(sender.getAttribute('data-videoid'));
+      var videoId = this.toVideoIdFilter(
+          this.currentCard.getAttribute('data-videoid'));
 
       IOWA.Analytics.trackEvent('video', 'watch', videoId);
 
-      // Wait one rAF for template to have stamped.
-      this.async(function() {
-        var videoContainer = document.querySelector('.fullvideo__container');
-        var video = videoContainer.querySelector('google-youtube');
+      var videoContainer = document.querySelector('.fullvideo__container');
+      var video = videoContainer.querySelector('google-youtube');
 
-        video.addEventListener('google-youtube-ready', function(e) {
-          video.videoid = videoId;
-          this.cardVideoTakeover(this.currentCard);
-        }.bind(this));
+      video.addEventListener('google-youtube-ready', function(e) {
+        video.videoId = videoId;
+        this.cardVideoTakeover(this.currentCard);
+      }.bind(this));
 
-        var thumbnail = videoContainer.querySelector('.fullvideo_thumbnail');
-        thumbnail.src = sender.getAttribute('data-videoimg'); // IE10 doesn't support .dataset.
-      });
+      var thumbnail = videoContainer.querySelector('.fullvideo_thumbnail');
+      thumbnail.src = this.currentCard.getAttribute('data-videoimg'); // IE10 doesn't support .dataset.
     };
 
-    template.closeMastheadVideo = function(e, detail, sender) {
+    template.closeMastheadVideo = function(e, detail) {
       this.mastheadVideoActive = false;
     };
 
-    template.openMastheadVideo = function(e, detail, sender) {
-      IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+    template.openMastheadVideo = function(e, detail) {
+      var target = Polymer.dom(e).rootTarget;
+
+      IOWA.Analytics.trackEvent(
+          'link', 'click', target.getAttribute(ANALYTICS_LINK_ATTR));
 
       this.mastheadVideoActive = true; // stamp template
 
-      // Wait 1 rAF for template to stamp.
-      this.async(function() {
-        var dialog = IOWA.Elements.Main.querySelector('paper-dialog');
-        var video = dialog.querySelector('google-youtube');
+      Polymer.dom.flush();
 
-        video.addEventListener('google-youtube-ready', function(e) {
-          // First session is the keynote.
-          // video.videoid = this.toVideoIdFilter(this.scheduleData.sessions[0].youtubeUrl);
-          dialog.toggle();
-        }.bind(this));
-      });
+      var dialog = IOWA.Elements.Main.querySelector('paper-dialog');
+      var video = dialog.querySelector('google-youtube');
+
+      video.addEventListener('google-youtube-ready', function(e) {
+        // First session is the keynote.
+        // video.videoId = this.toVideoIdFilter(this.scheduleData.sessions[0].youtubeUrl);
+        dialog.toggle();
+      }.bind(this));
     };
 
-    template.openShareWindow = function(e, detail, sender) {
+    template.openShareWindow = function(e, detail) {
       e.preventDefault();
 
-      var type = sender.getAttribute('data-share-type');
+      var type = Polymer.dom(e).rootTarget.getAttribute('data-share-type');
       var url = null;
       var width = 600;
       var height = 600;
@@ -572,7 +587,8 @@ IOWA.Elements = (function() {
       var title = document.title;
       var summary = null;
 
-      var selectedSession = sender.templateInstance.model.selectedSession;
+// TODO: update for polymer 1.0 port
+      var selectedSession = Polymer.dom(e).rootTarget.templateInstance.model.selectedSession;
       if (selectedSession) {
         title = selectedSession.title;
         summary = selectedSession.description;
@@ -623,8 +639,8 @@ IOWA.Elements = (function() {
 
     };
 
-    template.openSettings = function(e, detail, sender) {
-      var attr = sender.getAttribute('data-track-link');
+    template.openSettings = function(e, detail) {
+      var attr = Polymer.dom(e).rootTarget.getAttribute(ANALYTICS_LINK_ATTR);
       if (attr) {
         IOWA.Analytics.trackEvent('link', 'click', attr);
       }
@@ -635,7 +651,7 @@ IOWA.Elements = (function() {
       this.selectedPage = 'home';
     };
 
-    template.backToTop = function(e, detail, sender) {
+    template.backToTop = function(e, detail) {
       e.preventDefault();
 
       // Audio from BenSound (http://www.bensound.com/) - Creative Commons.
@@ -653,7 +669,7 @@ IOWA.Elements = (function() {
       IOWA.A11y.focusNavigation();
     };
 
-    template.onCountdownTimerThreshold = function(e, detail, sender) {
+    template.onCountdownTimerThreshold = function(e, detail) {
       if (detail.label === 'Ended') {
         this.countdownEnded = true;
       }
@@ -662,9 +678,9 @@ IOWA.Elements = (function() {
     template.signIn = function(e) {
       if (e) {
         e.preventDefault();
-        if (e.target.hasAttribute('data-track-link')) {
+        if (e.target.hasAttribute(ANALYTICS_LINK_ATTR)) {
           IOWA.Analytics.trackEvent(
-              'link', 'click', e.target.getAttribute('data-track-link'));
+              'link', 'click', e.target.getAttribute(ANALYTICS_LINK_ATTR));
         }
       }
       IOWA.Elements.GoogleSignIn.signIn();
@@ -673,19 +689,20 @@ IOWA.Elements = (function() {
     template.signOut = function(e) {
       if (e) {
         e.preventDefault();
-        if (e.target.hasAttribute('data-track-link')) {
+        if (e.target.hasAttribute(ANALYTICS_LINK_ATTR)) {
           IOWA.Analytics.trackEvent(
-              'link', 'click', e.target.getAttribute('data-track-link'));
+              'link', 'click', e.target.getAttribute(ANALYTICS_LINK_ATTR));
         }
       }
       IOWA.Elements.GoogleSignIn.signOut();
     };
 
-    template.updateNotifyUser = function(e, detail, sender) {
+    template.updateNotifyUser = function(e, detail) {
       // Both these functions are asynchronous and return promises. Since there's no specific
       // callback or follow-up that needs to be performed once they complete, the returned promise
       // is ignored.
-      if (sender.checked) {
+      var target = Polymer.dom(e).rootTarget;
+      if (target.checked) {
         // subscribePromise() handles registering a subscription with the browser's push manager
         // and toggling the notify state to true in the backend via an API call.
         IOWA.Notifications.subscribePromise().then(function() {
@@ -715,7 +732,7 @@ IOWA.Elements = (function() {
     // global notifications are enabled, the current browser has a push subscription,
     // and window.Notification.permission === 'granted'.
     // Updates IOWA.Elements.GoogleSignIn.user.notify = false otherwise.
-    template.getNotificationState = function(e, detail, sender) {
+    template.getNotificationState = function(e, detail) {
       // The core-overlay-open event that invokes this is called once when the overlay opens, and
       // once when it closes. We only want this code to run when the overlay opens.
       // detail is true when the setting panel is opened, and false when it's closed.
@@ -754,29 +771,101 @@ IOWA.Elements = (function() {
       }
     };
 
-    template.shiftContentLeft = function(e, detail, sender) {
+    template.shiftContentLeft = function(e, detail) {
       IOWA.PageAnimation.shiftContentLeft(
           IOWA.Elements.Main.querySelector('.featured__videos'));
     };
 
-    template.shiftContentRight = function(e, detail, sender) {
+    template.shiftContentRight = function(e, detail) {
       IOWA.PageAnimation.shiftContentRight(
           IOWA.Elements.Main.querySelector('.featured__videos'));
     };
 
-    template.addEventListener('template-bound', updateElements);
+    template.addEventListener('dom-change', updateElements);
+
     template.addEventListener('page-transition-done', function(e) {
       this.pageTransitionDone = true;
       IOWA.Elements.NavPaperTabs.style.pointerEvents = '';
     });
+
     template.addEventListener('page-transition-start', function(e) {
       this.pageTransitionDone = false;
       IOWA.Elements.NavPaperTabs.style.pointerEvents = 'none';
     });
 
+    template._equal = function(key, val) {
+      return key === val;
+    };
+
+    template._ternary = function(boolean, yes, no) {
+      return boolean ? yes : no;
+    };
+
+    template._propOfArrayItem = function(array, index, prop) {
+      return array[index][prop];
+    };
+
+    template._isPage = function(page, selectedPage) {
+      return this._equal(page, selectedPage);
+    };
+
+    template._isSelectedSubpage = function(pageName, subpageName) {
+      if (!this.pages) {
+        return false;
+      }
+      return this.pages[pageName].selectedSubpage == subpageName;
+    };
+
+    template._computeMastheadClass = function(pages, selectedPage) {
+      return pages[selectedPage].mastheadBgClass;
+    };
+
+    template._computeSignNavElementsClass = function(isPhoneSize, pages, selectedPage) {
+      return isPhoneSize ? '' : pages[selectedPage].mastheadBgClass;
+    };
+
+    template._disableNotify = function(notify) {
+      return notify === null;
+    };
+
+    template._addClass = function(name, prop) {
+      return prop ? name : '';
+    };
+
+    template._enableTabIndex = function(val) {
+      return val ? 0 : -1;
+    };
+
+    template._showSocialPosts = function(posts, atLeast) {
+      return posts.length >= atLeast;
+    };
+
+    // Schedule ---
+
+    template._hideTimezoneSelector = function(isPhoneSize, selectedPage) {
+      return isPhoneSize || this.pages[selectedPage].selectedSubpage === 'agenda';
+    };
+
+    template._hideSessionFilters = function(isPhoneSize, selectedPage) {
+      return !isPhoneSize || this.pages[selectedPage].selectedSubpage === 'myschedule';
+    };
+
+    template._computeActiveClassForSubpage = function(selectedSubpage, pageName, subpageName, opt_negate) {
+      var isSubpage = this._isSelectedSubpage(pageName, subpageName);
+      if (opt_negate) {
+        isSubpage = !isSubpage;
+      }
+      return this._addClass('active', isSubpage);
+    };
+
+    template._computeHideSessionDetailProgress = function(user, sessions, fetching) {
+      return !user || (sessions && !fetching);
+    };
+    // ---
+
     IOWA.Elements.Template = template;
     IOWA.Elements.ScrollContainer = document.querySelector(
-        'core-drawer-panel [main]');
+        'paper-drawer-panel [main]');
     template.ScrollContainer = IOWA.Elements.ScrollContainer;
   }
 

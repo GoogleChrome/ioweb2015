@@ -11,18 +11,18 @@
     <div class="card__container card__container--top slide-up">
       <div class="card js-experiment-visualizer">
         <div class="card-content">
-          <template if="{{!countdownEnded}}">
+          <template is="dom-if" if="[[!countdownEnded]]">
             <h3 class="card__title">Registration is now open. It will remain open until <b>March 19 at 5:00 PM PDT</b>.</h3>
           </template>
-          <template if="{{countdownEnded}}">
+          <template is="dom-if" if="[[countdownEnded]]">
            <h3 class="card__title">The registration window has closed. You can still join in the fun via I/O Extended and I/O Live.</h3>
           </template>
         </div>
         <div class="card-content">
-          <template if="{{!countdownEnded}}">
+          <template is="dom-if" if="[[!countdownEnded]]">
             <a href="apply" data-track-link="reg-start">Start Application</a>
           </template>
-          <template if="{{countdownEnded}}">
+          <template is="dom-if" if="[[countdownEnded]]">
             <a href="offsite" data-track-link="reg-learnmore">Learn more</a>
           </template>
         </div>
@@ -33,34 +33,34 @@
       <section class="page__section page__section--countdown bg-light-grey js-experiment-instrument">
         <div class="io-countdown" layout vertical center>
 
-          <template if="{{pageTransitionDone}}">
+          <template is="dom-if" if="[[pageTransitionDone]]" restamp>
             <countdown-timer autostart
                              bgcolor="#F5F5F5"
                              date="Mar 19 2015 17:00:00 GMT-0700 (PDT)"
                              dateadjustment="5" easeintime="500" waittime="300"
-                             easeouttime="400" thresholdInformation="{{thresholdInfo}}"
-                             on-timerthreshold="{{onCountdownTimerThreshold}}"
+                             easeouttime="400" threshold-information="{{thresholdInfo}}"
+                             on-timerthreshold="onCountdownTimerThreshold"
                              ended="{{countdownEnded}}"
                              value="{{countdownValue}}">
             </countdown-timer>
 
-            <template if="{{thresholdInfo.thresholdDays}}">
-              <h4 class="countdown-label">Day<span hidden?="{{countdownValue === 1}}">s</span> until Registration ends</h4>
+            <template is="dom-if" if="{{thresholdInfo.thresholdDays}}">
+              <h4 class="countdown-label">Day<span hidden$="{{countdownValue === 1}}">s</span> until Registration ends</h4>
             </template>
 
-            <template if="{{thresholdInfo.thresholdHours}}">
-              <h4 class="countdown-label">Hour<span hidden?="{{tcountdownValue === 1}}">s</span> until Registration ends</h4>
+            <template is="dom-if" if="{{thresholdInfo.thresholdHours}}">
+              <h4 class="countdown-label">Hour<span hidden$="{{tcountdownValue === 1}}">s</span> until Registration ends</h4>
             </template>
 
-            <template if="{{thresholdInfo.thresholdMinutes}}">
-              <h4 class="countdown-label">Minute<span hidden?="{{thrcountdownValue === 1}}">s</span> until Registration ends</h4>
+            <template is="dom-if" if="{{thresholdInfo.thresholdMinutes}}">
+              <h4 class="countdown-label">Minute<span hidden$="{{thrcountdownValue === 1}}">s</span> until Registration ends</h4>
             </template>
 
-            <template if="{{thresholdInfo.thresholdSeconds}}">
-              <h4 class="countdown-label">Second<span hidden?="{{thrcountdownValue === 1}}">s</span> until Registration ends</h4>
+            <template is="dom-if" if="{{thresholdInfo.thresholdSeconds}}">
+              <h4 class="countdown-label">Second<span hidden$="{{thrcountdownValue === 1}}">s</span> until Registration ends</h4>
             </template>
 
-            <template if="{{countdownEnded}}">
+            <template is="dom-if" if="{{countdownEnded}}">
               <h4 class="countdown-label">Registration has ended</h4>
             </template>
           </template>

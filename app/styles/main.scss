@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-@import 'base/_breakpoints';
-@import 'base/_color';
-@import 'base/_shadow';
-@import 'base/_typography';
+@import 'base/breakpoints';
+@import 'base/color';
+@import 'base/shadow';
+@import 'base/typography';
 
-@import 'base/_reset';
-@import 'base/_layout';
-@import 'base/_zindex';
+@import 'base/reset';
+@import 'base/layout';
+@import 'base/zindex';
 
-@import 'base/a11y';
+@import 'base/a11y.scss';
 
-@import 'components/_app';
-@import 'components/_masthead';
-@import 'components/_card';
-@import 'components/_footer';
-@import 'components/features';
+@import 'components/app';
+@import 'components/masthead';
+@import 'components/card';
+@import 'components/footer';
+@import 'components/features.scss';
 
-@import 'pages/home';
-@import 'pages/schedule';
-@import 'pages/about';
-@import 'pages/onsite';
-@import 'pages/offsite';
-@import 'pages/registration';
-@import 'pages/faq';
+@import 'pages/home.scss';
+@import 'pages/schedule.scss';
+@import 'pages/about.scss';
+@import 'pages/onsite.scss';
+@import 'pages/offsite.scss';
+@import 'pages/registration.scss';
+@import 'pages/faq.scss';
 
-@import 'pages/widget';
+@import 'pages/widget.scss';
 
-@import 'pages/videos';
+@import 'pages/videos.scss';
 

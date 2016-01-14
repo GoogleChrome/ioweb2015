@@ -27,6 +27,12 @@ $widgetWidth: 360px;
   // font-size: 16px;
 }
 
+:host(.bg-dark-grey) {
+  // color: $color-bluegrey-100;
+  background-color: $color-bluegrey-700;
+  // color: $color-section-dark-grey-text;
+}
+
 countdown-timer {
   top: 0;
   left: 0;
@@ -331,12 +337,6 @@ paper-progress {
 
 .card__bottom-links {
   flex-shrink: 0;
-}
-
-&.bg-dark-grey {
-  // color: $color-bluegrey-100;
-  background-color: $color-bluegrey-700;
-  // color: $color-section-dark-grey-text;
 }
 
 .middle-content-section {

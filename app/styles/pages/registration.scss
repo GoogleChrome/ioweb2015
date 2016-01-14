@@ -17,9 +17,9 @@
 
 $name: 'page-registration';
 
-@import '../base/_layout';
-@import '../base/_color';
-@import '../base/_breakpoints';
+@import '../base/layout';
+@import '../base/color';
+@import '../base/breakpoints';
 
 
 ##{$name} {

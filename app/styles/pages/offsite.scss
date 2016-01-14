@@ -25,40 +25,19 @@ $name: 'page-offsite';
 
 $icon-margin: 10px;
 
-.masthead-container {
-  max-width: 100%;
-}
-
-.photo__masthead {
-  background: url(../images/offsite/offsitesundar.jpg) no-repeat 50% 50%;
-  background-size: cover;
-}
-
-.pics__section {
+.card__photo--stage {
   height: 310px;
-  padding: 0;
-
-  > div {
-    min-height: 310px;
-  }
-}
-
-.photo__home {
-  background-image: url(../images/offsite/offsitegroup.jpg);
+  background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), url(../images/offsite/stage-887@2x.jpg);
   background-position: 50% 50%;
   background-size: cover;
-}
+  background-repeat: no-repeat;
 
-.photo__home--top {
-  background-image: url(../images/offsite/offsitecity.jpg);
-  background-position: 50% 0;
-  background-size: cover;
-}
-
-.photo__home--bottom {
-  background-image: url(../images/offsite/offsiteshri.jpg);
-  background-position: 50% 0;
-  background-size: cover;
+  h5 {
+    color: white;
+    text-shadow: .5px .5px 1px rgba(0, 0, 0, 0.25);
+    position: relative;
+    top: $mobileKeyline;
+  }
 }
 
 google-youtube {
@@ -99,7 +78,7 @@ google-youtube {
       left: 0;
     }
 
-    core-icon {
+    iron-icon {
       margin-right: $icon-margin;
     }
   }
@@ -115,7 +94,7 @@ google-youtube {
     opacity: 0;
     visibility: hidden;
 
-    core-icon {
+    iron-icon {
       position: absolute;
       right: 0;
       bottom: calc(50% - 30px/2 + 2px); // 30px is height of input container.
@@ -185,10 +164,6 @@ google-youtube {
   }
 }
 
-.page__section--attend {
-  margin-top: 0;
-}
-
 // Smaller than n6
 @media (max-width: 400px) {
   .search__map {
@@ -225,25 +200,24 @@ google-youtube {
 
 
 @media (min-width: $tablet-breakpoint-min) {
-  $marginTop: 72px;
+  $marginTop: 140px;
 
-  .pics__section {
-    height: 600px;
-    margin-top: -92px;
-
-    > div {
-      min-height: 600px;
-    }
+  .card__photo--stage {
+    height: 900px;
+    position: relative;
+    margin-top: -190px;
+    margin-bottom: -226px;
   }
   .play__button__container {
     margin-bottom: 130px;
   }
   .page__section--attend {
     background-position: 50% 90px;
+    margin-top: -80px;
     padding-top: $marginTop;
 
     h2 {
-      max-width: 580px;
+      max-width: 68%;
       padding: 0 $desktopKeyline 0 $desktopKeyline;
     }
 
@@ -254,7 +228,7 @@ google-youtube {
       right: $desktopKeyline;
       align-items: flex-end;
 
-      core-icon {
+      iron-icon {
         order: 1;
         margin-left: $icon-margin;
       }
@@ -285,7 +259,14 @@ google-youtube {
     }
   }
 
+  // Phase 3
+  .card__iorequest {
+    margin-top: -40px;
+  }
+  // ----
+
 }
+
 
 @media (min-width: $tablet-breakpoint-min) and (max-width: $tablet-breakpoint-mid) {
   .card__photo--stage {
@@ -293,17 +274,15 @@ google-youtube {
   }
 }
 
-@media (min-width: $tablet-breakpoint-min) and (max-width: $tablet-breakpoint-mid) {
-  .pics__section {
-    margin-top: -124px;
-  }
-}
-
 @media (min-width: $desktop-breakpoint-mid) {
-  .pics__section {
-    margin-top: -100px;
+   $marginTop: 100px;
+
+  .card__photo--stage {
+    margin-top: -170px;
   }
   .page__section--attend {
+    margin-top: -36px;
+    padding-top: $marginTop;
     background-size: cover;
     background-position: 50% 140px;
 
@@ -312,6 +291,7 @@ google-youtube {
     }
 
     .action__links {
+      top: $marginTop;
       left: $largeKeyline;
       right: $largeKeyline;
     }
@@ -321,5 +301,22 @@ google-youtube {
     }
   }
 }
+
+@media (min-width: $desktop-breakpoint-max) {
+  $marginTop: 180px;
+  .page__section--attend {
+    padding-top: $marginTop;
+    margin-top: -108px;
+
+    .action__links {
+      top: $marginTop;
+    }
+  }
+  .card__photo--stage {
+    margin-top: -170px;
+    margin-bottom: -64px;
+  }
+}
+
 
 }

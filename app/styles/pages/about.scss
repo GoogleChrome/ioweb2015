@@ -16,10 +16,10 @@
 
 $name: 'page-about';
 
-@import '../base/_color';
-@import '../base/_breakpoints';
-@import '../base/_layout';
-@import '../base/_typography';
+@import '../base/color';
+@import '../base/breakpoints';
+@import '../base/layout';
+@import '../base/typography';
 
 ##{$name} {
 
@@ -30,7 +30,7 @@ main {
     white-space: nowrap;
   }
 
-  core-icon {
+  iron-icon {
     margin-left: 10px;
   }
 }

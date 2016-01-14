@@ -12,55 +12,69 @@ limitations under the License.
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/core-list/core-list.html">
-<link rel="import" href="../bower_components/core-image/core-image.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <!--
 The `<io-gallery>` element renders a fullscreen photo gallery.
-
-@element io-gallery
 -->
-<polymer-element name="io-gallery">
-  <template>
-    <style>
-      :host {
-        display: block;
-        opacity: 0;
-        will-change: opacity;
-        background: rgba(0,0,0,0.8);
-      }
-      core-list {
-        height: 100%;
-        width: 80vw;
-      }
-      core-image {
-        width: 100%;
-        max-width: 820px;
-        height: 50vh;
-      }
-      .item {
-        box-sizing: border-box;
-        padding: 32px 0;
-      }
-      core-image::shadow #placeholder {
+
+<dom-module id="io-gallery">
+<template>
+  <style>
+    [fit] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+    .center-center {
+      @apply(--layout);
+      @apply(--layout-horizontal);
+      @apply(--layout-center-center);
+    }
+    :host {
+      display: block;
+      opacity: 0;
+      will-change: opacity;
+      background: rgba(0,0,0,0.8);
+    }
+    iron-list {
+      height: 100%;
+      width: 80vw;
+    }
+    iron-image {
+      width: 100%;
+      max-width: 820px;
+      height: 50vh;
+    }
+    .item {
+      box-sizing: border-box;
+      padding: 32px 0;
+    }
+    iron-image {
+      --iron-image-placeholder: {
         background-size: contain !important;
-      }
-    </style>
-    <div layout horizontal center-center fit>
-      <core-list id="list" data="{{renderList}}" selectionEnabled="false" height="{{height}}">
-        <template>
-           <div class="item" layout horizontal center-center>
-             <core-image _src="{{model.src}}" load?="{{!!model}}"
-                         sizing="{{sizing}}" preload placeholder="images/io15-color.png" fade
-                         style="background-color:{{backgroundColor}}"></core-image>
-           </div>
-        </template>
-      </core-list>
-    </div>
-  </template>
-  <script>
-  (function() {
-    "use strict";
+      };
+    }
+  </style>
+  <div class="center-center" fit>
+    <iron-list id="list" items="[[renderList]]" as="item">
+      <template>
+         <div class="item center-center">
+           <iron-image src="[[item.src]]" sizing="[[sizing]]" preload
+               placeholder="images/io15-color.png" fade
+               style$="background-color:[[backgroundColor]]"></iron-image>
+         </div>
+      </template>
+    </iron-list>
+  </div>
+</template>
+<script>
+  (function () {
+    'use strict';
 
     // Converts an object path the value in the object that references the path
     // e.g. 'obj.a.b.c' -> obj.a.b.c
@@ -68,48 +82,32 @@ The `<io-gallery>` element renders a fullscreen photo gallery.
       if (!str) {
         return obj;
       }
-      return str.split('.').reduce(function(o, x) { return o[x] }, obj);
+      return str.split('.').reduce(function(o, x) {
+        return o[x];
+      }, obj);
     }
 
     Polymer({
+      is: 'io-gallery',
 
-      publish: {
-        /**
-         * The list of items for the gallery.
-         *
-         * @property items
-         * @type Array
-         * @default []
-         */
-        items: {value: null},
-
-        /**
-         * True if on mobile.
-         *
-         * @property mobile
-         * @type bool
-         * @default false
-         */
-        mobile: {value: false, reflect: true},
-
-        /**
-         * Path into each item in the items array where the image URL lives.
-         *
-         * @property imagePath
-         * @type string
-         * @default null
-         */
-        imagePath: null,
-
+      properties: {
         /**
          * True when the gallery is being shown.
-         *
-         * @property active
-         * @type bool
-         * @default false
          */
-        active: false,
+        active: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          observer: '_activeChanged'
+        },
 
+        /**
+         * The background color of the placeholder.
+         */
+        backgroundColor: {
+          type: String,
+          value: '#00BCD4'
+        },
         /**
          * Average height of an item in the lists
          *
@@ -117,32 +115,49 @@ The `<io-gallery>` element renders a fullscreen photo gallery.
          * @type number
          * @default 200
          */
-        height: 200,
+        // height: {
+        //   type: Number,
+        //   value: 200,
+        //   notify: true
+        // },
+
+        /**
+         * Path into each item in the items array where the image URL lives.
+         */
+        imagePath: {
+          type: String,
+          value: null
+        },
+
+        /**
+         * The list of items for the gallery.
+         */
+        items: {
+          type: Array,
+          value: function() { return []; },
+          observer: '_itemsChanged'
+        },
+
+        /**
+         * True if on mobile.
+         */
+        mobile: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        },
 
         /**
          * The sizing "contains" or "cover" for the images.
-         *
-         * @property sizing
-         * @type string
-         * @default 'cover'
          */
-        sizing: 'cover',
-
-        /**
-         * The background color of the placeholder.
-         *
-         * @property backgroundColor
-         * @type string
-         * @default '#00BCD4'
-         */
-        backgroundColor: '#00BCD4'
+        sizing: {
+          type: String,
+          value: 'cover'
+        }
       },
 
-      created: function() {
-        this.items = [];
-      },
-
-      itemsChanged: function() {
+      _itemsChanged: function() {
         var list = [];
         for (var i = 0, item; item = this.items[i]; ++i) {
           list.push({src: _ref(item, this.imagePath)});
@@ -150,15 +165,13 @@ The `<io-gallery>` element renders a fullscreen photo gallery.
         this.renderList = list;
       },
 
-      activeChanged: function() {
+      _activeChanged: function() {
         if (this.active) {
-          this.async(function() {
-            this.$.list.updateSize();
-          });
+          this.$.list.fire('iron-resize');
         }
       }
-    });
 
-  })();
-  </script>
-</polymer-element>
+    });
+  }());
+</script>
+</dom-module>

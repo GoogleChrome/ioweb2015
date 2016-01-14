@@ -27,7 +27,13 @@
   background-color: $color-body;
 }
 
-:host(.bg-dark-grey,.bg-photo) #o2 {
+:host(.bg-dark-grey) #o2 {
+  background-color: $color-bluegrey-700;
+}
+
+// Cannot be comvined with previous rule because of
+// https://github.com/Polymer/polymer/issues/1787
+:host(.bg-photo) #o2 {
   background-color: $color-bluegrey-700;
 }
 

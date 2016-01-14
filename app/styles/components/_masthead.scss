@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-.io-logo {
+.io-logo:not(.style-scope) {
   background: url('../images/home/io-logo.png') no-repeat;
   background-size: contain;
   height: 40px;
@@ -64,8 +64,8 @@
     color: white;
   }
 
-  core-toolbar {
-    .io-logo {
+  paper-toolbar {
+    .io-logo:not(.style-scope) {
       margin-top: $mobileKeyline / 2;
       margin-left: $mobileKeyline / 2;
       display: inline-block;
@@ -118,27 +118,25 @@
 }
 
 
-core-drawer-panel {
+paper-drawer-panel {
   [drawer] {
     font-size: 14px;
     font-weight: 500;
-    background-color: $color-body;
   }
   [main] {
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
   }
-  core-toolbar .bottom {
+  paper-toolbar .bottom {
     font-size: 14px;
     line-height: 20px;
+  }
+  #drawer-menu .iron-selected {
+    background-color: #eaeaea;
   }
   .drawer-panel-content {
     overflow: auto;
 
-    core-menu {
-      margin-left: 0;
-      margin-right: 0;
-    }
     paper-item {
       font-size: inherit;
     }
@@ -150,11 +148,7 @@ core-drawer-panel {
 
 #navbar {
   background-color: transparent;
-  height: $navbarHeight;
-
-  &.core-narrow {
-    height: $navbarHeightMobile;
-  }
+  // height: $navbarHeight;
 
   paper-tabs {
     display: none;
@@ -170,7 +164,7 @@ core-drawer-panel {
       color: inherit;
     }
 
-    &.core-selected {
+    &.iron-selected {
       pointer-events: none;
     }
   }
@@ -180,13 +174,6 @@ core-drawer-panel {
     color: inherit;
     margin-right: $mobileKeyline / 2;
   }
-}
-
-.card__signin-intro {
-  position: absolute !important;
-  top: initial !important;
-  right: $tabletKeyline;
-  margin: 0;
 }
 
 #signin-nav-elements {
@@ -204,14 +191,13 @@ core-drawer-panel {
   }
 }
 
-#signin-settings-panel,
-.card__signin-intro {
+#signin-settings-panel {
   width: 344px;
   color: $color-text;
   font-size: 14px;
   line-height: 18px;
 
-  core-label {
+  iron-label {
     padding: $mobileKeyline 0;
   }
 
@@ -281,7 +267,7 @@ core-drawer-panel {
     margin: 0;
     padding: 0;
     border: none;
-    core-menu {
+    paper-menu {
       margin: 0;
     }
     paper-item {
@@ -301,21 +287,21 @@ core-drawer-panel {
   line-height: 20px;
 }
 
-experiment-fab-container, .fab {
-  bottom: -20px; // experiment-fab's height / 2
+.fab {
+  bottom: -20px; // fab's height / 2
   right: $mobileKeyline;
   width: 56px;
   height: 56px;
 }
 
 paper-fab {
-  background: #fff;
+  background: #fff !important;
   position: absolute;
-  color: $color-fab-icon;
+  color: $color-fab-icon !important;
 }
 
 @media (max-width: $phone-breakpoint-max) {
-  experiment-fab-container, .fab {
+  .fab {
     width: 40px;
     height: 40px;
   }
@@ -337,18 +323,12 @@ paper-fab {
     > .profilepic {
       display: none;
     }
-    .io-logo {
+    .io-logo:not(.style-scope) {
       display: none;
     }
     paper-icon-button[focused] {
       background: transparent;
     }
-  }
-
-  .card__signin-intro {
-    right: 0;
-    left: 0;
-    width: 100%;
   }
 }
 
@@ -366,8 +346,8 @@ paper-fab {
     padding: 0 0 170px 0;
   }
 
-  experiment-fab-container, .fab {
-    bottom: -28px; // experiment-fab's height / 2
+  .fab {
+    bottom: -28px; // fab's height / 2
     right: $desktopKeyline;
   }
 
@@ -377,8 +357,7 @@ paper-fab {
       margin: 0;
     }
     paper-menu-button {
-      height: 40px;
-      margin: 0;
+      padding: 0;
     }
     [icon="menu"] {
       display: none;
@@ -405,7 +384,7 @@ paper-fab {
 }
 
 @media (min-resolution: 2.0dppx), (-webkit-min-device-pixel-ratio: 2), (min-width: $tablet-breakpoint-min) {
-  .io-logo {
+  .io-logo:not(.style-scope) {
     background-image: url('../images/home/io-logo@2x.png');
   }
 }

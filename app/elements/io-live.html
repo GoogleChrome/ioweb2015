@@ -13,11 +13,11 @@ limitations under the License.
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/google-youtube/google-youtube.html">
-<link rel="import" href="../bower_components/core-animated-pages/core-animated-pages.html">
-<link rel="import" href="../bower_components/core-animated-pages/transitions/slide-from-right.html">
-<link rel="import" href="../bower_components/core-icon/core-icon.html">
-<link rel="import" href="../bower_components/core-label/core-label.html">
-<link rel="import" href="../bower_components/core-menu/core-menu.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="../bower_components/neon-animatio/animates/slide-from-right-animation.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-label/iron-label.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog-transition.html">
@@ -297,7 +297,7 @@ Fired when the mode changes.
 
       <template if="{{mode !== _MODES.BEFORE}}">
         <div class="fullvideo__container" fit>
-          <google-youtube videoid="{{selectedVideoId}}" height="100%" width="100%" fit
+          <google-youtube video-id="{{selectedVideoId}}" height="100%" width="100%" fit
                           autohide="1" controls="2" modestbranding="1" showinfo="0"
                           iv_load_policy="3" rel="0" autoplay="1"
                           on-google-youtube-ready="{{onVideoReady}}"

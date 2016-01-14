@@ -17,9 +17,9 @@
 
 $name: 'page-widget';
 
-@import '../base/_color';
-@import '../base/_breakpoints';
-@import '../base/_layout';
+@import '../base/color';
+@import '../base/breakpoints';
+@import '../base/layout';
 
 ##{$name} {
 
@@ -45,7 +45,7 @@ io-radio-button {
   margin-bottom: $mobileKeyline;
 }
 
-core-label {
+iron-label {
   margin-right: $rightMargin;
 }
 

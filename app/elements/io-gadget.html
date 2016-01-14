@@ -12,11 +12,10 @@ limitations under the License.
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/core-menu/core-menu.html">
-<link rel="import" href="../bower_components/core-media-query/core-media-query.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/google-youtube/google-youtube.html">
-<link rel="import" href="../bower_components/paper-dropdown/paper-dropdown.html">
-<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html"
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="social-post.html">
 <link rel="import" href="social-poller.html">
@@ -88,7 +87,7 @@ The `<io-gadget>` element renders a youtube video + social feed.
                    title="Start watching" alt="Start watching">
 
               <google-youtube id="video" height="100%" width="100%" fit
-                              videoid="{{selectedVideoId}}" autohide="1"
+                              video-id="{{selectedVideoId}}" autohide="1"
                               controls="2" modestbranding="1" showinfo="0"
                               iv_load_policy="3" rel="0" autoplay="0"
                               on-google-youtube-ready="{{onVideoReady}}"
@@ -102,8 +101,8 @@ The `<io-gadget>` element renders a youtube video + social feed.
               </div>
               <div>
                 <paper-dropdown-menu label="Switch channel">
-                  <paper-dropdown valign="bottom" halign="right" class="dropdown">
-                    <core-menu class="menu" valueattr="videoid" selected="{{selectedVideoId}}">
+                  <!-- <paper-dropdown valign="bottom" halign="right" class="dropdown"> -->
+                    <paper-menu class="menu" valueattr="videoid" selected="{{selectedVideoId}}">
                       <template repeat="{{video,i in videoIds}}">
                         <template if="{{i === 0}}">
                           <paper-item videoid="{{video}}">Keynote</paper-item>
@@ -112,8 +111,8 @@ The `<io-gadget>` element renders a youtube video + social feed.
                           <paper-item videoid="{{video}}">Channel {{i}}</paper-item>
                         </template>
                       </template>
-                    </core-menu>
-                  </paper-dropdown>
+                    </paper-menu>
+                  <!-- </paper-dropdown> -->
                 </paper-dropdown-menu>
               </div>
             </div>

@@ -8,8 +8,8 @@
 {% define "masthead" %}
   <h1>Schedule</h1>
   <div layout horizontal justified>
-    <paper-tabs id="subpage-tabs" class="white" valueattr="label" selected="day1"
-                scrollable?="{{isPhoneSize}}" link>
+    <paper-tabs id="subpage-tabs" class="white" attr-for-selected="label"
+                selected="day1" scrollable$="{{isPhoneSize}}">
       <paper-tab label="agenda" role="">
         <a href="#agenda" data-track-link="schedule-agenda" data-ajax-link
                           layout horizontal center-center>Agenda</a>
@@ -24,193 +24,226 @@
       </paper-tab>
       <paper-tab label="myschedule" role="">
         <a href="#myschedule" data-track-link="schedule-mysched" data-ajax-link
-                           layout horizontal center-center>My Schedule</a>
+                              layout horizontal center-center>My Schedule</a>
       </paper-tab>
     </paper-tabs>
-    <paper-dropdown-menu label="Select timezone" hidden?="{{isPhoneSize || pages[selectedPage].selectedSubpage === 'agenda'}}">
-      <paper-dropdown class="dropdown" halign="right" duration="200">
-        <core-menu class="menu" selected="{{selectedTimezone}}" valueattr="label" on-core-activate="{{selectTimezone}}">
-          <template repeat="{{zone in timezones}}">
-            <paper-item label="{{zone}}">{{zone | prettifyTimezone}}</paper-item>
-          </template>
-        </core-menu>
-      </paper-dropdown>
+
+    <paper-dropdown-menu class="white" always-float-label
+        label="Select timezone" horizontal-align="right"
+        hidden$="{{_hideTimezoneSelector(isPhoneSize, selectedPage)}}">
+      <paper-listbox class="dropdown-content" selected="{{selectedTimezone}}"
+                     attr-for-selected="label"
+                     on-iron-activate="selectTimezone">
+        <template is="dom-repeat" items="[[timezones]]" as="zone">
+          <paper-item label="{{zone}}">{{prettifyTimezone(zone)}}</paper-item>
+        </template>
+      </paper-listbox>
     </paper-dropdown-menu>
+
   </div>
 {% end %}
 
 {% define "content" %}
 <!-- backdrop shouldn't be applied on ios - github.com/Polymer/paper-dialog/issues/16 -->
-<paper-dialog class="session__detail" transition="core-transition-center"
-              layered="false" backdrop?="{{!isIOS}}"
-              on-core-overlay-close-completed="{{onSessionDetailsClose}}"
-              on-core-overlay-open-completed="{{onSessionDetailsOpen}}">
-  <paper-icon-button icon="arrow-back" core-overlay-toggle aria-label="Close session"></paper-icon-button>
-  <div class="card__photo" relative>
-    <template if="{{startScheduleVideo && !selectedSession.isLivestream && selectedSession.youtubeUrl}}">
-      <google-youtube videoid="{{selectedSession.youtubeUrl | toVideoIdFilter}}" height="100%" width="100%" fit
-                      autohide="1" controls="2" modestbranding="1" showinfo="0"
-                      iv_load_policy="3" rel="0" autoplay="1"
-                      on-google-youtube-ready="{{onScheduleVideoReady}}"></google-youtube>
-    </template>
-    <div class="play__button__container" on-click="{{onVideoPlay}}" data-track-link="{{selectedSession.youtubeUrl}}"
-         hidden?="{{selectedSession.isLivestream || !selectedSession.youtubeUrl}}" layout vertical center-center fit>
-      <h4>Watch video</h4>
+<paper-dialog class="session__detail"
+              entry-animation="scale-up-animation"
+              exit-animation="fade-out-animation"
+              with-backdrop="[[!isIOS]]"
+              on-iron-overlay-closed="onSessionDetailsClose"
+              on-iron-overlay-opened="onSessionDetailsOpen">
+  <div class="scrollable">
+    <paper-icon-button icon="arrow-back" dialog-dismiss
+                       aria-label="Close session"></paper-icon-button>
+    <div class="card__photo" relative>
+
+      <template is="dom-if" if="{{sessionHasVideo(startScheduleVideo, selectedSession.isLivestream, selectedSession.youtubeUrl)}}" restamp>
+        <google-youtube video-id="[[toVideoIdFilter(selectedSession.youtubeUrl)]]"
+            height="100%" width="100%" fit
+            autohide="1" controls="2" modestbranding="1" showinfo="0"
+            iv_load_policy="3" rel="0" autoplay="1"
+            on-google-youtube-ready="onScheduleVideoReady"></google-youtube>
+      </template>
+      <div class="play__button__container" on-click="onVideoPlay"
+           data-track-link$="{{selectedSession.youtubeUrl}}"
+           hidden$="{{showSessionPlayButton(selectedSession)}}"
+           layout vertical center-center fit>
+        <h4>Watch video</h4>
+      </div>
+      <iron-image src="{{placeholderImage(selectedSession)}}"
+                  placeholder="images/io15-color.png"
+                  sizing="cover" preload fade fit></iron-image>
+      <paper-fab icon="{{_computeSessionSavedIcon(selectedSession.*)}}"
+                 mini="[[isPhoneSize]]"
+                 class$="[[_addClass('active', selectedSession.saved)]]"
+                 on-up="toggleSaveSession"
+                 disabled$="{{scheduleFetchingUserData}}"></paper-fab>
+      <paper-progress indeterminate
+          hidden$="{{_computeHideSessionDetailProgress(currentUser, savedSessions, scheduleFetchingUserData)}}"></paper-progress>
     </div>
-    <core-image src="{{selectedSession.photoUrl || 'images/schedule/session_placeholder.jpg'}}"
-                placeholder="images/io15-color.png"
-                sizing="cover" preload fade fit></core-image>
-    <paper-fab icon="{{selectedSession.saved ? 'check' : 'add'}}"
-               mini?="{{isPhoneSize}}" class="{{ {active: selectedSession.saved} | tokenList }}"
-               on-up="{{toggleSaveSession}}"
-               disabled?="{{scheduleFetchingUserData}}"></paper-fab>
-    <paper-progress indeterminate hidden?="{{!currentUser || (savedSessions && !scheduleFetchingUserData)}}"></paper-progress>
-  </div>
-  <div class="session__info__section">
-    <h2 class="session__title" tabindex="-1">{{selectedSession.title}}</h2>
-    <h5 class="session__time">May {{selectedSession.day}} / {{selectedSession.start}}<span hidden?="{{selectedSession.id === '__keynote__'}}"> - {{selectedSession.end}}</span> / {{selectedSession.room}}</h5>
-    <h5 class="session__categories">{{selectedSession.tags | formatSessionTagsFilter}}</h5>
-    <div class="session__desc">{{selectedSession.description}}</div>
-    <div class="session__social" layout horizontal>
-      <a href="#" target="_blank" class="share-icon" data-share-type="gplus"
-         data-track-link="schedule-detail-share-gplus" on-click="{{openShareWindow}}">
-        <core-icon icon="io:post-gplus"></core-icon>
-      </a>
-      <a href="#" target="_blank" class="share-icon" data-share-type="twitter"
-         data-track-link="schedule-detail-share-twitter" on-click="{{openShareWindow}}">
-        <core-icon icon="io:post-twitter"></core-icon>
-      </a>
-      <a href="#" target="_blank" class="share-icon" data-share-type="fb"
-         data-track-link="schedule-detail-share-fb" on-click="{{openShareWindow}}">
-        <core-icon icon="io:post-facebook"></core-icon>
-      </a>
-      <span flex class="session__livestream" hidden?="{{!selectedSession.isLivestream}}">Live streamed <core-icon icon="io:videocam"></core-icon></span>
+    <div class="session__info__section">
+      <h2 class="session__title" tabindex="-1">{{selectedSession.title}}</h2>
+      <h5 class="session__time">May <span>{{selectedSession.day}}</span> / <span>{{selectedSession.start}}</span><span hidden$="{{_equal('__keynote__', selectedSession.id)}}"> - {{selectedSession.end}}</span> / <span>{{selectedSession.room}}</span></h5>
+      <h5 class="session__categories">{{formatSessionTagsFilter(selectedSession.tags)}}</h5>
+      <div class="session__desc">{{selectedSession.description}}</div>
+      <div class="session__social" layout horizontal>
+        <a href="#" target="_blank" class="share-icon" data-share-type="gplus"
+           data-track-link="schedule-detail-share-gplus" on-click="openShareWindow">
+          <iron-icon icon="io:post-gplus"></iron-icon>
+        </a>
+        <a href="#" target="_blank" class="share-icon" data-share-type="twitter"
+           data-track-link="schedule-detail-share-twitter" on-click="openShareWindow">
+          <iron-icon icon="io:post-twitter"></iron-icon>
+        </a>
+        <a href="#" target="_blank" class="share-icon" data-share-type="fb"
+           data-track-link="schedule-detail-share-fb" on-click="openShareWindow">
+          <iron-icon icon="io:post-facebook"></iron-icon>
+        </a>
+        <span class="session__livestream" flex
+              hidden$="{{!selectedSession.isLivestream}}">Live streamed <iron-icon icon="io:videocam"></iron-icon>
+        </span>
+      </div>
     </div>
-  </div>
-  <div class="session__info__section session__speakers" hidden?="{{!selectedSession.speakers.length}}">
-    <h4>Speakers</h4>
-    <div layout horizontal wrap>
-      <template repeat="{{speakerId in selectedSession.speakers}}">
-        <div class="speaker__card" layout horizontal>
-          <div><img _src="{{scheduleData.speakers[speakerId].thumbnailUrl || 'images/schedule/profile_placeholder.png'}}" class="profilepic"></div>
-          <div class="speaker__info" layout vertical flex>
-            <span class="speaker__name">{{scheduleData.speakers[speakerId].name}}</span>
-            <span class="speaker__title">{{scheduleData.speakers[speakerId].company}}</span>
-            <div class="speaker__desc">{{scheduleData.speakers[speakerId].bio}}</div>
-            <div class="session__social" layout horizontal>
-              <a href="{{scheduleData.speakers[speakerId].plusoneUrl}}" target="_blank" class="share-icon" hidden?="{{!scheduleData.speakers[speakerId].plusoneUrl}}"><core-icon icon="io:post-gplus"></core-icon></a>
-              <a href="{{scheduleData.speakers[speakerId].twitterUrl}}" target="_blank" class="share-icon" hidden?="{{!scheduleData.speakers[speakerId].twitterUrl}}"><core-icon icon="io:post-twitter"></core-icon></a>
+    <div class="session__info__section session__speakers"
+         hidden$="{{!selectedSession.speakers.length}}">
+      <h4>Speakers</h4>
+      <div layout horizontal wrap>
+        <template is="dom-repeat" items="{{selectedSession.speakers}}" as="speakerId">
+          <div class="speaker__card" layout horizontal>
+            <div><img src$="{{speakerProfilePic(scheduleData.speakers, speakerId)}}"
+                      class="profilepic"></div>
+            <div class="speaker__info" layout vertical flex>
+              <span class="speaker__name">{{_propOfArrayItem(scheduleData.speakers, speakerId, 'name')}}</span>
+              <span class="speaker__title">{{_propOfArrayItem(scheduleData.speakers, speakerId, 'company')}}</span>
+              <div class="speaker__desc">{{_propOfArrayItem(scheduleData.speakers, speakerId, 'bio')}}</div>
+              <div class="session__social" layout horizontal>
+                <a href$="{{_propOfArrayItem(scheduleData.speakers, speakerId, 'plusoneUrl')}}" target="_blank" class="share-icon" hidden$="{{!_propOfArrayItem(scheduleData.speakers, speakerId, 'plusoneUrl')}}"><iron-icon icon="io:post-gplus"></iron-icon></a>
+                <a href$="{{_propOfArrayItem(scheduleData.speakers, speakerId, 'twitterUrl')}}" target="_blank" class="share-icon" hidden$="{{!_propOfArrayItem(scheduleData.speakers, speakerId, 'twitterUrl')}}"><iron-icon icon="io:post-twitter"></iron-icon></a>
+              </div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
 
+      </div>
     </div>
-  </div>
-  <div class="session__info__section session__info__links card-content"
-      layout horizontal justified?="{{isPhoneSize}}"
-      hidden?="{{selectedSession.id == '__afterhours__' || (!isSessionFinishedFilter(selectedSession) && !selectedSession.hasRelated)}}">
-    <span class="anchor-like" role="link" on-click="{{onRelatedContent}}" data-track-link="schedule-detail-related"
-        core-overlay-toggle hidden?="{{!selectedSession.hasRelated}}">View related content</span>
-    <span class="anchor-like" on-click="{{onRateSession}}" role="link"
-        data-track-link="schedule-rate-session" hidden?="{{selectedSession.rated || selectedSession.id == '__afterhours__' || !isSessionFinishedFilter(selectedSession) }}">Rate session</span>
-    <span class="anchor-like-disabled" hidden?="{{!selectedSession.rated}}">Rating submitted</span>
+
+    <div class="session__info__section session__info__links card-content"
+        layout horizontal justified$="{{isPhoneSize}}"
+        hidden$="{{_computeHideSessionInfo(selectedSession)}}">
+      <span class="anchor-like" role="link"
+            on-click="onRelatedContent"
+            data-track-link="schedule-detail-related"
+            hidden$="{{!selectedSession.hasRelated}}"
+            dialog-dismiss>View related content</span>
+      <span class="anchor-like" role="link"
+          on-click="onRateSession"
+          data-track-link="schedule-rate-session"
+          hidden$="{{_computeHideSessionRating(selectedSession)}}">Rate session</span>
+      <span class="anchor-like-disabled" hidden$="{{!selectedSession.rated}}">Rating submitted</span>
+    </div>
   </div>
 </paper-dialog>
 
-<paper-dialog class="session__rate" transition="core-transition-center"
-              layered="false" backdrop?="{{!isIOS}}">
-  <div class="session__info__section rate__header" layout horizontal center>
-    <paper-icon-button icon="arrow-back" core-overlay-toggle aria-label="Close session"></paper-icon-button>
-    <span>Rate this session</span>
-  </div>
-  <div class="session__info__section">
-    <h2 class="session__title" tabindex="-1">{{selectedSession.title}}</h2>
-    <h5 class="session__authors">
-      {{selectedSession.speakers | speakerIdsToNameString}}
-    </h5>
-  </div>
-  <div class="session__info__section">
-    <p>Session rating:</p>
-    <div>
+<paper-dialog class="session__rate"
+              entry-animation="scale-up-animation"
+              exit-animation="fade-out-animation"
+              with-backdrop$="{{!isIOS}}">
+  <div class="scrollable">
+    <div class="session__info__section rate__header" layout horizontal center>
+      <paper-icon-button icon="arrow-back" dialog-dismiss aria-label="Close session"></paper-icon-button>
+      <span>Rate this session</span>
+    </div>
+    <div class="session__info__section">
+      <h2 class="session__title" tabindex="-1">{{selectedSession.title}}</h2>
+      <h5 class="session__authors">{{speakerIdsToNameString(selectedSession.speakers)}}</h5>
+    </div>
+    <div class="session__info__section">
+      <p>Session rating:</p>
       <div>
-        <core-menu layout selected="{{answers.overall}}" valueattr="value" horizontal justified>
-          <paper-icon-button value="1" icon="star" class="rate__icon"></paper-icon-button>
-          <paper-icon-button value="2" icon="star" class="rate__icon"></paper-icon-button>
-          <paper-icon-button value="3" icon="star" class="rate__icon"></paper-icon-button>
-          <paper-icon-button value="4" icon="star" class="rate__icon"></paper-icon-button>
-          <paper-icon-button value="5" icon="star" class="rate__icon"></paper-icon-button>
-        </core-menu>
-      </div>
-      <div class="rate__hint" layout horizontal justified>
-        <span>Not so awesome</span>
-        <span>Awesome</span>
+        <div>
+          <paper-menu selected="{{answers.overall}}"
+                      attr-for-selected="value" layout horizontal justified>
+            <paper-icon-button value="1" icon="star" class="rate__icon"></paper-icon-button>
+            <paper-icon-button value="2" icon="star" class="rate__icon"></paper-icon-button>
+            <paper-icon-button value="3" icon="star" class="rate__icon"></paper-icon-button>
+            <paper-icon-button value="4" icon="star" class="rate__icon"></paper-icon-button>
+            <paper-icon-button value="5" icon="star" class="rate__icon"></paper-icon-button>
+          </paper-menu>
+        </div>
+        <div class="rate__hint" layout horizontal justified>
+          <span>Not so awesome</span>
+          <span>Awesome</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="session__info__section">
-    <p>How relevant was this session to your projects?</p>
-    <div>
+    <div class="session__info__section">
+      <p>How relevant was this session to your projects?</p>
       <div>
-        <core-menu selected="{{answers.relevance}}" valueattr="value" layout horizontal justified>
-          <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
-          <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
-          <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
-          <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
-          <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
-        </core-menu>
-      </div>
-      <div class="rate__hint" layout horizontal justified>
-        <span>Not at all</span>
-        <span>Extremely</span>
+        <div>
+          <paper-menu selected="{{answers.relevance}}"
+                      attr-for-selected="value" layout horizontal justified>
+            <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
+            <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
+            <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
+            <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
+            <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
+          </paper-menu>
+        </div>
+        <div class="rate__hint" layout horizontal justified>
+          <span>Not at all</span>
+          <span>Extremely</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="session__info__section">
-    <p>Based on the description/my expectations, the content was:</p>
-    <div>
+    <div class="session__info__section">
+      <p>Based on the description/my expectations, the content was:</p>
       <div>
-        <core-menu selected="{{answers.content}}" valueattr="value" layout horizontal justified>
-          <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
-          <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
-          <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
-          <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
-          <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
-        </core-menu>
-      </div>
-      <div class="rate__hint" layout horizontal justified>
-        <span>Too basic</span>
-        <span>Too advanced</span>
+        <div>
+          <paper-menu selected="{{answers.content}}"
+                      attr-for-selected="value" layout horizontal justified>
+            <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
+            <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
+            <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
+            <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
+            <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
+          </paper-menu>
+        </div>
+        <div class="rate__hint" layout horizontal justified>
+          <span>Too basic</span>
+          <span>Too advanced</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="session__info__section">
-    <p>Speaker quality:</p>
-    <div>
+    <div class="session__info__section">
+      <p>Speaker quality:</p>
       <div>
-        <core-menu selected="{{answers.speaker}}" valueattr="value" layout horizontal justified>
-          <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
-          <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
-          <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
-          <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
-          <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
-        </core-menu>
-      </div>
-      <div class="rate__hint" layout horizontal justified>
-        <span>Poor</span>
-        <span>Outstanding</span>
+        <div>
+          <paper-menu selected="{{answers.speaker}}"
+                      attr-for-selected="value" layout horizontal justified>
+            <paper-icon-button value="1" icon="star" class="rate__icon rate__icon-empty rate__icon-1"></paper-icon-button>
+            <paper-icon-button value="2" icon="star" class="rate__icon rate__icon-empty rate__icon-2"></paper-icon-button>
+            <paper-icon-button value="3" icon="star" class="rate__icon rate__icon-empty rate__icon-3"></paper-icon-button>
+            <paper-icon-button value="4" icon="star" class="rate__icon rate__icon-empty rate__icon-4"></paper-icon-button>
+            <paper-icon-button value="5" icon="star" class="rate__icon rate__icon-empty rate__icon-5"></paper-icon-button>
+          </paper-menu>
+        </div>
+        <div class="rate__hint" layout horizontal justified>
+          <span>Poor</span>
+          <span>Outstanding</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="session__info__section session__info__links card-content">
-    <span class="anchor-like"
-        disabled?="{{ !answers.overall && !answers.relevance && !answers.content && !answers.speaker}}" on-click="{{onRateSessionSubmit}}" role="link"
-        data-track-link="schedule-rate-submit" core-overlay-toggle?="{{ answers.overall || answers.relevance || answers.content || answers.speaker}}">Submit</span>
+    <div class="session__info__section session__info__links card-content">
+      <span class="anchor-like" role="link"
+          disabled$="[[_computeDisableRateSession(answers.*)]]"
+          on-click="onRateSessionSubmit"
+          data-track-link="schedule-rate-submit"
+          dialog-dismiss$="[[!_computeDisableRateSession(answers.*)]]">Submit</span>
+    </div>
   </div>
 </paper-dialog>
 
 <div class="subpage__container">
-  <section class="subpage-agenda subpage__content {{ {active: pages['schedule'].selectedSubpage == 'agenda'} | tokenList}}">
+  <section class$="subpage-agenda subpage__content {{_computeActiveClassForSubpage(pages.schedule.selectedSubpage, 'schedule', 'agenda')}}">
     <section class="page__section page__section--top slide-up">
       <div class="card__container card__container--top">
         <div class="card js-experiment-visualizer">
@@ -219,9 +252,10 @@
           </div>
           <div class="card-content">
             <div layout horizontal>
-              <core-icon icon="schedule" aria-hidden="true"></core-icon>
+              <iron-icon icon="schedule" aria-hidden="true"></iron-icon>
               <div class="schedule-rows" flex>
-                <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                <div class="schedule-row" layout vertical$="{{isPhoneSize}}"
+                     horizontal$="{{!isPhoneSize}}">
                   <span class="schedule-time">9:00 AM - 8:00 PM</span>
                   <span class="schedule-title" flex auto-vertical>Badge pick-up</span>
                 </div>
@@ -240,33 +274,33 @@
             </div>
             <div class="card-content">
               <div layout horizontal>
-                <core-icon icon="schedule" aria-hidden="true"></core-icon>
+                <iron-icon icon="schedule" aria-hidden="true"></iron-icon>
                 <div class="schedule-rows" flex>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">7:00 AM - 9:00 AM</span>
                     <span class="schedule-title" flex auto-vertical>Breakfast</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">7:00 AM - 5:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Badge pick-up</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">9:00 AM - 9:30 AM</span>
                     <span class="schedule-title" flex auto-vertical>Pre-keynote show</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">9:30 AM</span>
                     <span class="schedule-title" flex auto-vertical>Keynote</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">12:00 PM - 5:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Code labs, Sessions &amp; Sandbox</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">12:00 PM - 2:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Lunch</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">6:30 PM - 10:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>After Hours</span>
                   </div>
@@ -284,25 +318,25 @@
             </div>
             <div class="card-content">
               <div layout horizontal>
-                <core-icon icon="schedule" aria-hidden="true"></core-icon>
+                <iron-icon icon="schedule" aria-hidden="true"></iron-icon>
                 <div class="schedule-rows" flex>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">7:00 AM - 9:00 AM</span>
                     <span class="schedule-title" flex auto-vertical>Breakfast</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">8:00 AM - 3:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Badge pick-up</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">9:00 AM - 5:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Code labs, Sessions &amp; Sandbox</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">12:00 PM - 2:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>Lunch</span>
                   </div>
-                  <div class="schedule-row" layout vertical?="{{isPhoneSize}}" horizontal?="{{!isPhoneSize}}">
+                  <div class="schedule-row" layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
                     <span class="schedule-time">5:00 PM</span>
                     <span class="schedule-title" flex auto-vertical>End of event</span>
                   </div>
@@ -315,11 +349,11 @@
     </div>
   </section>
 
-  <section id="subpage-day1" class="subpage-day1 subpage-day2 subpage-myschedule subpage__content {{ {active: pages['schedule'].selectedSubpage != 'agenda'} | tokenList}}">
-    <section  class="page__section page__section--top slide-up">
+  <section id="subpage-day1" class$="subpage-day1 subpage-day2 subpage-myschedule subpage__content {{_computeActiveClassForSubpage(pages.schedule.selectedSubpage, 'schedule', 'agenda', true)}}">
+    <section class="page__section page__section--top slide-up">
       <div id="signin-prompt"
-          class="card__container card__container--top {{ {'prompt-hidden': currentUser} | tokenList}}"
-          hidden?="{{pages['schedule'].selectedSubpage === 'myschedule'}}">
+          class$="card__container card__container--top {{_addClass('prompt-hidden', currentUser)}}"
+          hidden$="{{_equal(pages.schedule.selectedSubpage, 'myschedule')}}">
         <div class="card js-experiment-visualizer">
           <div class="card-content">
             <h3 class="card__title">Create your custom I/O schedule</h3>
@@ -331,17 +365,17 @@
             </div>
           </div>
           <div class="card-content">
-            <span class="anchor-like" role="link" tabindex="0" data-track-link="schedule-sign-in" on-click="{{signIn}}">
-              Sign in
-            </span>
+            <span class="anchor-like" role="link" tabindex="0"
+                  data-track-link="schedule-sign-in" on-click="signIn">Sign in</span>
           </div>
         </div>
       </div>
 
-      <div class="card__container card__container--top" hidden?="{{pages['schedule'].selectedSubpage !== 'myschedule'}}">
+      <div class="card__container card__container--top"
+           hidden$="{{!_equal(pages.schedule.selectedSubpage, 'myschedule')}}">
         <div class="card js-experiment-visualizer">
 
-          <template if="{{!currentUser}}">
+          <template is="dom-if" if="[[!currentUser]]">
             <div class="card-content">
               <h3 class="card__title">Create your custom I/O schedule</h3>
               <div>
@@ -353,12 +387,13 @@
               </div>
             </div>
             <div class="card-content">
-              <span class="anchor-like" role="link" tabindex="0" data-track-link="schedule-sign-in"
-                    on-click="{{signIn}}">Sign in</span>
+              <span class="anchor-like" role="link" tabindex="0"
+                    data-track-link="schedule-sign-in"
+                    on-click="signIn">Sign in</span>
             </div>
           </template>
 
-          <template if="{{currentUser}}">
+          <template is="dom-if" if="[[currentUser]]">
             <div class="card-content notification__feature">
               <div>If you have notifications enabled, you'll be notified on this device when:
                 <ul>
@@ -371,8 +406,9 @@
               </p>
             </div>
             <div class="card-content notification__feature">
-              <span class="anchor-like" role="link" tabindex="0" data-track-link="schedule-open-settings"
-                    on-click="{{openSettings}}">Go to settings</span>
+              <span class="anchor-like" role="link" tabindex="0"
+                    data-track-link="schedule-open-settings"
+                    on-click="openSettings">Go to settings</span>
             </div>
           </template>
 
@@ -381,50 +417,49 @@
 
     </section>
     <div class="slide-up-delay">
-      <div class="page__filters" layout horizontal hidden?="{{!isPhoneSize || pages[selectedPage].selectedSubpage === 'myschedule'}}">
+      <div class="page__filters" layout horizontal
+           hidden$="{{_hideSessionFilters(isPhoneSize, selectedPage, 'myschedule')}}">
         <span flex>
-          <paper-dropdown-menu>
-            <paper-dropdown class="dropdown" halign="left" duration="200">
-              <core-menu class="menu" selected="Filters" valueattr="label"
-                  on-core-activate="{{selectFilter}}">
-                <paper-item label="Filters">Filters</paper-item>
-                <template repeat="{{theme, i in filterThemes}}">
-                  <paper-item label="{{theme}}"
-                    class="{{ {'paper-item-separator': i === 0} | tokenList}}">{{theme}}</paper-item>
-                </template>
-                <template repeat="{{type, i in filterSessionTypes}}">
-                  <paper-item label="{{type}}"
-                      class="{{ {'paper-item-separator': i === 0} | tokenList}}">{{type}}</paper-item>
-                </template>
-                <paper-item label="Live streamed">Live streamed</paper-item>
-              </core-menu>
-            </paper-dropdown>
+          <paper-dropdown-menu horizontal-align="left">
+            <paper-menu class="dropdown-content" selected="Filters"
+                        attr-for-selected="label"
+                        on-iron-activate="selectFilter">
+              <paper-item label="Filters">Filters</paper-item>
+              <template is="dom-repeat" items="{{filterThemes}}" as="theme">
+                <paper-item label="{{theme}}"
+                  class="{{ {'paper-item-separator': i === 0} | tokenList}}">{{theme}}</paper-item>
+              </template>
+              <template is="dom-repeat" items="{{filterSessionTypes}}" as="type">
+                <paper-item label="{{type}}"
+                    class="{{ {'paper-item-separator': i === 0} | tokenList}}">{{type}}</paper-item>
+              </template>
+              <paper-item label="Live streamed">Live streamed</paper-item>
+            </paper-menu>
           </paper-dropdown-menu>
         </span>
-        <paper-dropdown-menu>
-          <paper-dropdown class="dropdown" halign="right" duration="200">
-            <core-menu class="menu" selected="{{selectedTimezone}}" valueattr="label">
-              <template repeat="{{zone in timezones}}">
-                <paper-item label="{{zone}}">{{zone | prettifyTimezone}}</paper-item>
-              </template>
-            </core-menu>
-          </paper-dropdown>
+        <paper-dropdown-menu horizontal-align="right">
+          <paper-menu class="dropdown-content" selected="{{selectedTimezone}}"
+                      attr-for-selected="label">
+            <template is="dom-repeat" items="{{timezones}}" as="zone">
+              <paper-item label="{{zone}}">{{prettifyTimezone(zone)}}</paper-item>
+            </template>
+          </paper-menu>
         </paper-dropdown-menu>
       </div>
       <section class="page__section">
-        <io-schedule day="{{days[pages[selectedPage].selectedSubpage]}}"
+        <io-schedule day="{{_computeDay(days)}}"
           sessions="{{scheduleData.sessions}}"
-          sessionThemes="{{filterThemes}}"
-          sessionTopics="{{filterTopics}}"
-          sessionTypes="{{filterSessionTypes}}"
-          userSessions="{{savedSessions}}"
+          session-themes="{{filterThemes}}"
+          session-topics="{{filterTopics}}"
+          session-types="{{filterSessionTypes}}"
+          user-sessions="{{savedSessions}}"
           timezone="{{selectedTimezone}}"
-          timezoneNames="{{timezoneNames}}"
-          fetchingUserData="{{scheduleFetchingUserData}}"
+          timezone-names="{{timezoneNames}}"
+          fetching-user-data="{{scheduleFetchingUserData}}"
           filters="{{sessionURLFilters}}"
-          on-session-bookmark="{{toggleSaveSession}}"
-          on-session-select="{{openSession}}"
-          gmtDayOne="{% .StartDateStr %}"></io-schedule>
+          on-session-bookmark="toggleSaveSession"
+          on-session-select="openSession"
+          gmt-day-one="{% .StartDateStr %}"></io-schedule>
       </section>
     </div>
   </section>
@@ -447,6 +482,7 @@
       }
 
       IOWA.Elements.Template.dontAutoSubscribe = false;
+      IOWA.Elements.Template.selectedTimezone = 'GMT' + moment().format('Z'); // Local timezone.
 
       var getFiltersFromURL = function(opt_parsedUrl) {
         var parsedUrl = opt_parsedUrl || IOWA.Router.parseUrl(window.location.toString());
@@ -469,7 +505,7 @@
         // Deep link into schedule tab.
         var parsedUrl = IOWA.Router.parseUrl(window.location.toString());
         template.sessionURLFilters = getFiltersFromURL(parsedUrl);
-        template.selectedTimezone = 'GMT' + moment().format('Z'); // Local timezone.
+        // template.selectedTimezone = 'GMT' + moment().format('Z'); // Local timezone.
         template.selectTimezone();
 
         // Deep link into session. First, try to pull session id from the
@@ -493,10 +529,11 @@
         IOWA.Elements.Template.async(function() {
           ioScheduleEl = document.querySelector('io-schedule');
           detailsPanel = document.querySelector('.session__detail');
-          detailsPanel.querySelector('core-image').classList.remove('fadeout');
+          detailsPanel.querySelector('iron-image').classList.remove('fadeout');
           detailsPanel.querySelector('.play__button__container').classList.remove('fadeout');
           ratePanel = ratePanel || document.querySelector('.session__rate');
 
+          // TODO: check that this is still needed in paper-tabs.
           IOWA.A11y.addFocusStates(SUBTAB_SELECTOR);
         });
         window.addEventListener('popstate', sessionDetailsPopstateHandler);
@@ -517,7 +554,7 @@
         detailsPanel.open();
       };
 
-      IOWA.Elements.Template.toggleSaveSession = function(e, detail, sender) {
+      IOWA.Elements.Template.toggleSaveSession = function(e, detail) {
         e.stopPropagation();
 
         // Bookmarking came from <io-schedule> event. We're passed a session object.
@@ -531,7 +568,7 @@
 
         IOWA.Schedule.saveSession(this.selectedSession.id, saved).then(function() {
           this.scheduleFetchingUserData = false;
-          this.selectedSession.saved = saved;
+          this.set('selectedSession.saved', saved);
 
           IOWA.Schedule.bookmarkSessionNotification(saved);
 
@@ -548,7 +585,7 @@
         }
       };
 
-      IOWA.Elements.Template.onSessionDetailsClose = function(e, detail, sender) {
+      IOWA.Elements.Template.onSessionDetailsClose = function(e, detail) {
         // Remove session id hash from URL.
         var search = IOWA.Util.removeSearchParam(window.location.search, 'sid');
         var url = IOWA.Router.composeUrl(
@@ -558,19 +595,22 @@
         document.title = 'Schedule';
         pageIsDeepLinked_ = false;
 
+        var parent = Polymer.dom(e.target).node;
+
         // Reset video state.
-        var video = sender.querySelector('google-youtube')
+        var video = parent.querySelector('google-youtube');
         if (video) {
           video.pause();
         }
-        sender.querySelector('core-image').classList.remove('fadeout');
-        sender.querySelector('.play__button__container').classList.remove('fadeout');
+        parent.querySelector('iron-image').classList.remove('fadeout');
+        parent.querySelector('.play__button__container').classList.remove('fadeout');
         this.startScheduleVideo = false;
       };
 
-      IOWA.Elements.Template.onSessionDetailsOpen = function(e, detail, sender) {
-        // sender.updateTargetDimensions();
-        sender.querySelector('.session__title').focus();
+      IOWA.Elements.Template.onSessionDetailsOpen = function(e, detail) {
+        var el = Polymer.dom(e.target).node;
+
+        el.querySelector('.session__title').focus();
 
         document.title = this.selectedSession.title + ' - Google I/O Schedule';
 
@@ -589,9 +629,11 @@
         }
       };
 
-      IOWA.Elements.Template.selectFilter = function(e, detail, sender) {
+      IOWA.Elements.Template.selectFilter = function(e, detail) {
+        var menu = Polymer.dom(e.target).node;
+
         var oldFilters = ioScheduleEl.filters;
-        ioScheduleEl.filters = sender.selectedIndex ? [sender.selected] : [];
+        ioScheduleEl.filters = menu.selectedIndex ? [menu.selected] : [];
         var newFilters = ioScheduleEl.filters;
         // This should not be necessary, since assigning filters above should trigger
         // the change watcher automatically. For unknown reason, on mobile only, Polymer
@@ -600,32 +642,39 @@
         ioScheduleEl.filtersChanged(oldFilters, newFilters);
       };
 
-      IOWA.Elements.Template.onRelatedContent = function(e, detail, sender) {
+      IOWA.Elements.Template.onRelatedContent = function(e, detail) {
         e.stopPropagation();
-        if (sender && sender.hasAttribute('data-track-link')) {
-          IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target && target.hasAttribute('data-track-link')) {
+          IOWA.Analytics.trackEvent('link', 'click', target.getAttribute('data-track-link'));
         }
         ioScheduleEl.filters = [this.selectedSession.id];
       };
 
-      IOWA.Elements.Template.onRateSession = function(e, detail, sender) {
-        if (sender && sender.hasAttribute('data-track-link')) {
-          IOWA.Analytics.trackEvent('link', 'click', sender.getAttribute('data-track-link'));
+      IOWA.Elements.Template.onRateSession = function(e, detail) {
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target && target.hasAttribute('data-track-link')) {
+          IOWA.Analytics.trackEvent('link', 'click', target.getAttribute('data-track-link'));
         }
         this.answers = {}; // Reset answers.
         ratePanel.open();
       };
 
-      IOWA.Elements.Template.onRateSessionSubmit = function(e, detail, sender) {
-        if (sender.hasAttribute('disabled')) {
+      IOWA.Elements.Template.onRateSessionSubmit = function(e, detail) {
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target.hasAttribute('disabled')) {
           return;
         }
         IOWA.Schedule.saveSurvey(this.selectedSession.id, this.answers).then(function() {
-          this.selectedSession.rated = true;
+          this.set('selectedSession.rated', true);
         }.bind(this));
       };
 
-      IOWA.Elements.Template.selectTimezone = function(e, detail, sender) {
+      IOWA.Elements.Template.selectTimezone = function(e, detail) {
         var day1LocalizedTime = ioScheduleEl.getLocalizedTime(ioScheduleEl.gmtDayOne);
         var day2LocalizedTime = moment(day1LocalizedTime).add(1, 'day');
 
@@ -642,20 +691,77 @@
         };
       };
 
-      IOWA.Elements.Template.onScheduleVideoReady = function(e, detail, sender) {
-        detailsPanel.querySelector('core-image').classList.add('fadeout');
+      IOWA.Elements.Template.onScheduleVideoReady = function(e, detail) {
+        detailsPanel.querySelector('iron-image').classList.add('fadeout');
         detailsPanel.querySelector('.play__button__container').classList.add('fadeout');
       };
 
-      IOWA.Elements.Template.onVideoPlay = function(e, detail, sender) {
+      IOWA.Elements.Template.onVideoPlay = function(e, detail) {
         e.stopPropagation();
         e.preventDefault();
 
         this.startScheduleVideo = true;
 
-        if (sender.hasAttribute('data-track-link')) {
-          IOWA.Analytics.trackEvent('schedule', 'video play', sender.getAttribute('data-track-link'));
+        var target = Polymer.dom(e).rootTarget;
+        if (target.hasAttribute('data-track-link')) {
+          IOWA.Analytics.trackEvent(
+              'schedule', 'video play', target.getAttribute('data-track-link'));
         }
+      };
+
+      IOWA.Elements.Template.sessionHasVideo = function(startVideo, isLivestream, youtubeUrl) {
+        return startVideo && !isLivestream && youtubeUrl;
+      };
+
+      IOWA.Elements.Template.showSessionPlayButton = function(selectedSession) {
+        if (!selectedSession) {
+          return false;
+        }
+        return selectedSession.isLivestream || !selectedSession.youtubeUrl;
+      };
+
+      IOWA.Elements.Template.placeholderImage = function(selectedSession) {
+        if (selectedSession && selectedSession.photoUrl) {
+          return selectedSession.photoUrl;
+        }
+        return 'images/schedule/session_placeholder.jpg';
+      };
+
+      IOWA.Elements.Template.speakerProfilePic = function(speakers, id) {
+        if (speakers && speakers[id].thumbnailUrl) {
+          return speakers[id].thumbnailUrl;
+        }
+        return 'images/schedule/profile_placeholder.png';
+      };
+
+      IOWA.Elements.Template._computeHideSessionInfo = function(session) {
+        if (session === null) {
+          return false;
+        }
+        var isFinished = new Date(session.endTimestamp) < Date.now();
+        return session.id === '__afterhours__' ||
+               (!isFinished && !session.hasRelated);
+      };
+
+      IOWA.Elements.Template._computeHideSessionRating = function(session) {
+        if (session === null) {
+          return false;
+        }
+        var isFinished = new Date(session.endTimestamp) < Date.now();
+        return session.rated || session.id == '__afterhours__' || !isFinished;
+      };
+
+      IOWA.Elements.Template._computeDay = function(days) {
+        return this.days[this.pages[this.selectedPage].selectedSubpage];
+      };
+
+      IOWA.Elements.Template._computeSessionSavedIcon = function(selectedSession) {
+        return selectedSession.value && selectedSession.value.saved ? 'check' : 'add';
+      };
+
+      IOWA.Elements.Template._computeDisableRateSession = function(answersRecord) {
+        return !this.answers.overall && !this.answers.relevance &&
+               !this.answers.content && !this.answers.speaker;
       };
 
       page.load(); // Run load callback on page load.

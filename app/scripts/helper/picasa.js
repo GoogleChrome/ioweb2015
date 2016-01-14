@@ -32,7 +32,7 @@ IOWA.Picasa = (function() {
     return 'https://picasaweb.google.com/data/feed/api/user/' +
            GDEVELOPER_USER_ID + '/albumid/' + albumId +
            '?alt=jsonc&kind=photo&hl=' + lang +
-           '&imgmax=' + Math.min(viewPortWidth * (window.devicePixelRatio || 1), 1440) +
+           '&imgmax=' + Math.min(parseInt(viewPortWidth * (window.devicePixelRatio || 1)), 1440) +
            '&max-results=5000&v=2';
   }
 

@@ -1,5 +1,5 @@
 <!--
-Copyright 2015 Google Inc. All rights reserved.
+Copyright 2016 Google Inc. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -17,84 +17,81 @@ limitations under the License.
 Polls a social feed endpoint for more data.
 
     <social-poller url="/api/v1/social"></social-poller>
-
-@element social-post
 -->
-<polymer-element name="social-poller" attributes="url interval posts" hidden>
+<dom-module id="social-poller">
   <script>
-  Polymer({
-    publish: {
-      /**
-       * The URL endpoint of the API.
-       *
-       * @attribute url
-       * @type string
-       * @default ''
-       */
-      url: 'api/v1/social',
+    Polymer({
+      is: 'social-poller',
 
-      /**
-       * Interval (ms) to poll for posts.
-       *
-       * @attribute interval
-       * @type number
-       * @default 30
-       */
-      interval: 30 * 1000,
+      hostAttributes: {
+        hidden: true
+      },
 
-      /**
-       * List of posts returned by the API `url`.
-       *
-       * @attribute posts
-       * @type array
-       * @default []
-       */
-      posts: {value: null, reflect: true},
+      properties: {
+        _updateSocialPostsTimeout: {
+          value: null
+        },
+        /**
+         * Interval (ms) to poll for posts.
+         */
+        interval: {
+          value: 30 * 1000
+        },
 
-      _updateSocialPostsTimeout: null
-    },
+        /**
+         * List of posts returned by the API `url`.
+         */
+        posts: {
+          value: function() { return []; },
+          notify: true,
+          readOnly: true
+        },
 
-    created: function() {
-      this.posts = [];
-    },
-
-    ready: function() {
-      // TODO: global pollution.
-      var callback = this._processSocialPosts.bind(this);
-      IOWA.Request.cacheThenNetwork(this.url, callback, callback);
-
-        // Set a timeout to fetch new posts after 30 seconds.
-      this._updateSocialPostsTimeout = setTimeout(this.updateSocialPosts.bind(this), this.interval);
-    },
-
-     detached: function() {
-      if (this._updateSocialPostsTimeout) {
-        window.clearTimeout(this._updateSocialPostsTimeout);
-      }
-     },
-
-    updateSocialPosts: function() {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', this.url);
-      // The request will be intercepted by the service worker, which will use a network-first
-      // policy to ensure that the service worker cache is initially ignored.
-      // But if the device is offline, it will return the previously cached content.
-      xhr.setRequestHeader('X-Cache-Only', 'false');
-
-      xhr.onload = function() {
-        if (xhr.status < 400) {
-          this._processSocialPosts(JSON.parse(xhr.response));
-          // Schedule another automatic update if we got a successful response back.
-          this._updateSocialPostsTimeout = setTimeout(this.updateSocialPosts.bind(this), this.interval);
+        /**
+         * The URL endpoint of the API.
+         */
+        url: {
+          type: String,
+          value: 'api/v1/social'
         }
-      }.bind(this);
+      },
 
-      xhr.send();
-    },
+      ready: function() {
+        // TODO: global pollution.
+        var callback = this._processSocialPosts.bind(this);
+        IOWA.Request.cacheThenNetwork(this.url, callback, callback);
+        // Set a timeout to fetch new posts after 30 seconds.
+        this._updateSocialPostsTimeout = setTimeout(
+            this.updateSocialPosts.bind(this), this.interval);
+      },
 
-    _processSocialPosts: function(socialPosts) {
-      this.posts = socialPosts;
-    }
-  });
+      detached: function() {
+        if (this._updateSocialPostsTimeout) {
+          window.clearTimeout(this._updateSocialPostsTimeout);
+        }
+      },
+
+      updateSocialPosts: function() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', this.url);
+        // The request will be intercepted by the service worker, which will use a network-first
+        // policy to ensure that the service worker cache is initially ignored.
+        // But if the device is offline, it will return the previously cached content.
+        xhr.setRequestHeader('X-Cache-Only', 'false');
+        xhr.onload = function () {
+          if (xhr.status < 400) {
+            this._processSocialPosts(JSON.parse(xhr.response));
+            // Schedule another automatic update if we got a successful response back.
+            this._updateSocialPostsTimeout = setTimeout(
+                this.updateSocialPosts.bind(this), this.interval);
+          }
+        }.bind(this);
+        xhr.send();
+      },
+
+      _processSocialPosts: function(socialPosts) {
+        this._setPosts(socialPosts);
+      }
+    });
   </script>
-</polymer-element>
+</dom-module>

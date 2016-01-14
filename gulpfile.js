@@ -26,7 +26,7 @@ var spawn = require('child_process').spawn;
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var runSequence = require('run-sequence');
-var browserSync = require('browser-sync');
+var browserSync = require('browser-sync').create();
 var del = require('del');
 var merge = require('merge-stream');
 var opn = require('opn');
@@ -40,11 +40,13 @@ var argv = require('yargs').argv;
 var IOWA = require('./package.json').iowa;
 var DIST_EXPERIMENT_DIR = path.join(IOWA.appDir, IOWA.experimentDir);
 
+var AUTOPREFIXER_BROWSERS = ['last 2 versions', 'ios 8', 'Safari 8'];
+
 // reload is a noop unless '--reload' cmd line arg is specified.
 // reload has no effect without '--watch'.
-var reload = function() {
+let reload = function() {
   return new require('stream').PassThrough({objectMode: true});
-};
+}
 if (argv.reload) {
   reload = browserSync.reload;
   // reload doesn't make sense w/o watch
@@ -64,6 +66,15 @@ var dataWorkerScripts = [
   IOWA.appDir + '/scripts/helper/schedule.js',
   IOWA.appDir + '/data-worker.js'
 ];
+
+
+function createReloadServer() {
+  browserSync.init({
+    notify: true,
+    open: !!argv.open,
+    //proxy: 'localhost:8080' // proxy serving through app engine.
+  });
+}
 
 // Default task that builds everything.
 // The output can be found in IOWA.distDir.
@@ -109,12 +120,13 @@ gulp.task('clear', function (done) {
 });
 
 // TODO(ericbidelman): also remove generated .css files.
-gulp.task('clean', ['clear'], function(cleanCallback) {
-  del([
+gulp.task('clean', ['clear'], function() {
+  return del([
     IOWA.distDir,
     IOWA.appDir + '/data-worker-scripts.js',
+    `${IOWA.appDir}/{styles,elements}/**/*.css`,
     DIST_EXPERIMENT_DIR
-  ], cleanCallback);
+  ]);
 });
 
 
@@ -242,18 +254,14 @@ gulp.task('generate-service-worker-dist', function(callback) {
 
 // Compile SASS files.
 gulp.task('sass', function() {
+  var sassOpts = {
+    outputStyle: 'compressed'
+  };
+
   return gulp.src([IOWA.appDir + '/{styles,elements}/**/*.scss'])
-    .pipe($.sass({outputStyle: 'compressed'}))
+    .pipe($.sass(sassOpts))
     .pipe($.changed(IOWA.appDir + '/{styles,elements}', {extension: '.scss'}))
-    .pipe($.autoprefixer([
-      'ie >= 10',
-      'ie_mob >= 10',
-      'ff >= 33',
-      'chrome >= 38',
-      'safari >= 7',
-      'opera >= 26',
-      'ios >= 7'
-    ]))
+    .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
     .pipe(gulp.dest(IOWA.appDir))
     .pipe($.size({title: 'styles'}));
 });
@@ -277,11 +285,12 @@ gulp.task('vulcanize-elements', ['sass'], function() {
       IOWA.appDir + '/elements/elements.html'
     ])
     .pipe($.vulcanize({
-      strip: !argv.pretty,
-      csp: true,
-      inline: true,
+      stripComments: true,
+      inlineCss: true,
+      inlineScripts: true,
       dest: IOWA.appDir + '/elements'
     }))
+    .pipe($.crisper({scriptInHead: true}))
     .pipe(gulp.dest(IOWA.distDir + '/' + IOWA.appDir + '/elements/'));
 });
 
@@ -291,11 +300,12 @@ gulp.task('vulcanize-gadget-elements', ['sass'], function() {
       IOWA.appDir + '/elements/embed-elements.html'
     ])
     .pipe($.vulcanize({
-      strip: !argv.pretty,
-      csp: true,
-      inline: true,
+      stripComments: true,
+      inlineCss: true,
+      inlineScripts: true,
       dest: IOWA.appDir + '/elements'
     }))
+    .pipe($.crisper({scriptInHead: true}))
     .pipe(gulp.dest(IOWA.distDir + '/' + IOWA.appDir + '/elements/'));
 });
 
@@ -305,20 +315,19 @@ gulp.task('vulcanize-extended-elements', ['sass'], function() {
       IOWA.appDir + '/elements/io-extended-form.html'
     ])
     .pipe($.vulcanize({
-      strip: !argv.pretty,
-      csp: true,
-      inline: true,
+      stripComments: true,
+      inlineCss: true,
+      inlineScripts: true,
       dest: IOWA.appDir + '/elements',
-      excludes: {
-        imports: [ // These are registered in the main site vulcanized bundle.
-          'polymer.html$',
-          'core-icon.html$',
-          'core-iconset-svg.html$',
-          'core-shared-lib.html$',
-          'paper-button.html$'
-        ]
-      }
+      excludes: [ // These are registered in the main site vulcanized bundle.
+        'polymer.html$',
+        'core-icon.html$',
+        'core-iconset-svg.html$',
+        'core-shared-lib.html$',
+        'paper-button.html$'
+      ]
     }))
+    .pipe($.crisper({scriptInHead: true}))
     .pipe(gulp.dest(IOWA.distDir + '/' + IOWA.appDir + '/elements/'));
 });
 
@@ -347,7 +356,8 @@ gulp.task('build-experiment', buildExperiment);
 gulp.task('jshint', function() {
   return gulp.src([IOWA.appDir + '/scripts/**/*.js'])
     .pipe(reload({stream: true, once: true}))
-    .pipe($.jshint())
+    // .pipe($.jshint.extract()) // Extract JS from .html files
+    .pipe($.jshint({esnext: true}))
     .pipe($.jshint.reporter('jshint-stylish'))
     .pipe($.if(!browserSync.active, $.jshint.reporter('fail')));
 });
@@ -486,6 +496,7 @@ gulp.task('serve:dist', ['default'], function(done) {
 
 // Watch file changes and reload running server or rebuild stuff.
 function watch() {
+  createReloadServer();
   gulp.watch([IOWA.appDir + '/**/*.html'], reload);
   gulp.watch([IOWA.appDir + '/{elements,styles}/**/*.{scss,css}'], ['sass', reload]);
   gulp.watch([IOWA.appDir + '/scripts/**/*.js'], ['jshint']);
@@ -506,7 +517,7 @@ function watch() {
 gulp.task('screenshots', ['backend:build'], function(callback) {
   var seleniumScreenshots = require('./gulp_scripts/screenshots');
   // We don't want the service worker to served cached content when taking screenshots.
-  del.sync(IOWA.appDir + '/service-worker.js');
+  del.sync([IOWA.appDir + '/service-worker.js']);
 
   var styleWatcher = gulp.watch([IOWA.appDir + '/{elements,styles}/**/*.{scss,css}'], ['sass']);
   var callbackWrapper = function(error) {

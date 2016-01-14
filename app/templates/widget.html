@@ -8,8 +8,10 @@
 
 {% define "content" %}
 <!-- backdrop shouldn't be applied on ios - github.com/Polymer/paper-dialog/issues/16 -->
-<paper-dialog id="gadgetfaq" backdrop?="{{!isIOS}}" transition="core-transition-center" layered="false">
-  <paper-icon-button icon="arrow-back" core-overlay-toggle aria-label="Close dialog"></paper-icon-button>
+<paper-dialog id="gadgetfaq" with-backdrop$="[[!isIOS]]"
+              transition="core-transition-center">
+  <paper-icon-button icon="arrow-back" iron-overlay-toggle
+                     aria-label="Close dialog"></paper-icon-button>
   <section>
     <h2 class="card__title">I/O Live Embed Widget FAQ</h2>
     <h4>What is the I/O Live widget?</h4>
@@ -76,7 +78,11 @@
         <h3>Personalize the I/O Live stream for your website and share the #io15 conversation directly with your audience.</h3>
       </div>
       <div class="card-content">
-        <a href="#" data-ajax-link data-transition="hero-card-transition" data-track-link="widget-faq" on-tap="{{toggleGadgetFaq}}">
+        <a href="#"
+           data-ajax-link
+           data-transition="hero-card-transition"
+           data-track-link="widget-faq"
+           on-tap="toggleGadgetFaq">
           <i18n-msg msgid="live-faq">Read I/O Live Embed Widget FAQ</i18n-msg>
         </a>
       </div>

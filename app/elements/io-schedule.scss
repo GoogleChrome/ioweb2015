@@ -37,17 +37,17 @@
 }
 
 .schedule-rows .schedule-row,
-.filter-rows > core-label {
+.filter-rows > paper-label {
   margin-bottom: $tabletKeyline;
 }
 
 .filter-rows {
-  io-checkbox {
+  paper-checkbox {
     margin: 0 0 0 $tabletKeyline;
   }
 }
 
-.filter-rows > core-label {
+.filter-rows > paper-label {
   cursor: pointer;
 }
 
@@ -87,7 +87,7 @@
   right: 0;
 }
 
-io-checkbox {
+paper-checkbox {
   margin-right: $tabletKeyline;
 }
 
@@ -95,7 +95,7 @@ paper-radio-group {
   width: 100%;
 }
 
-io-radio-button {
+paper-radio-button {
   display: block;
   padding: 12px 0 !important;
 }

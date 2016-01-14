@@ -19,7 +19,6 @@ limitations under the License.
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1">
   <meta name="google-site-verification" content="AdXcVeRpEoy56o6g9c0lls3IiAATCVtB45HWJFwZmsM" />
   <meta name="google-site-verification" content="j4g2UAPd-Fnxh2o_daravb8lvXwZuatJt5kVSbdM0Fc" />
-  <!-- phase2-dot-io-webapp.appspot.com -->
   <meta name="google-site-verification" content="ZuttP0TBQxWoi679sPXHsxrWLCIW1kaJKEnHt2t2yU0" />
   <title>{% .Title %}</title>
 
@@ -168,13 +167,124 @@ limitations under the License.
   <!-- Page styles -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
   <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/main_sd.css" shim-shadowdom>
+  <!-- <link rel="stylesheet" href="styles/main_sd.css" shim-shadowdom> -->
 
-  <script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
   <link rel="import" href="elements/elements.html">
   {% if .Canonical %}
   <link rel="canonical" href="{% .Canonical %}">
   {% end %}
+
+  <style is="custom-style">
+    [layout] {
+      @apply(--layout);
+    }
+    [layout][horizontal] {
+      @apply(--layout-horizontal);
+    }
+    [layout][vertical] {
+      @apply(--layout-vertical);
+    }
+    [layout][center] {
+      @apply(--layout-center);
+    }
+    [layout][center-center] {
+      @apply(--layout-center-center);
+    }
+    [flex] {
+      @apply(--layout-flex);
+    }
+    [two] {
+      @apply(--layout-flex-2);
+    }
+    [end-justified] {
+      @apply(--layout-end-justified);
+    }
+    [end] {
+      @apply(--layout-end);
+    }
+    [justified] {
+      @apply(--layout-justified);
+    }
+    [self-center] {
+      @apply(--layout-self-center);
+    }
+    [wrap] {
+       @apply(--layout-wrap);
+    }
+
+    paper-tabs.white {
+      --paper-tabs-selection-bar-color: #fff;
+    }
+
+    paper-tabs.white paper-tab {
+      --paper-tab-ink: rgba(255,255,255,0.5);
+      --paper-tab-content: {
+        opacity: 1 !important;
+      };
+    }
+
+    paper-dropdown-menu.white {
+      --paper-input-container-color: inherit;
+      --paper-dropdown-menu-icon: {
+        color: inherit;
+      };
+      --paper-input-container: {
+        padding: 0;
+      }
+    }
+
+    paper-drawer-panel {
+      --paper-drawer-panel-drawer-container: {
+        z-index: 100; /* TODO: stick in _zindex.scss */
+      };
+      --paper-drawer-panel-scrim: {
+        z-index: 5; /* TODO: stick in _zindex.scss */
+      };
+    }
+
+    footer paper-dropdown-menu {
+      --paper-input-container-underline: {
+        display: none;
+      };
+      --paper-input-container-underline-focus: {
+        display: none;
+      };
+      --paper-input-container: {
+        padding: 0;
+        max-width: 150px;
+      };
+      --paper-input-container-label: {
+        color: inherit;
+        font: inherit;
+      };
+    }
+
+    :root {
+      --color-cyan-500: #00BCD4; /* Duplicated from _colors.scss */
+    }
+
+    .card__photo iron-image {
+      --iron-image-placeholder: {
+        background-color: var(--color-cyan-500);
+        background-size: contain !important;
+      };
+    }
+
+    #page-about .pics__section iron-image {
+      --iron-image-placeholder: {
+        background-size: 15% !important;
+      };
+    }
+
+    paper-dialog {
+      --paper-font-title: {}; /* nuke paper-dialog's styling */
+    }
+
+    .scrollable {
+      @apply(--layout-scroll);
+    }
+  </style>
 </head>
 <body id="page-{% .Slug %}">
 
@@ -184,79 +294,76 @@ limitations under the License.
   <div class="{% template "mastheadBgClass" .%}" iologobackground></div>
 </div>
 
-<core-drawer-panel forceNarrow>
+<paper-drawer-panel force-narrow>
   <div drawer layout vertical>
-    <core-toolbar class="tall bg-cyan">
+    <paper-toolbar class="tall bg-cyan">
       <div class="top io-logo" flex></div>
       <div class="top">
         <img class="profilepic" hidden>
       </div>
       <div class="bottom">
-        <div class="typo-white"><i18n-msg msgid="iodate">May 28 - 29</i18-msg>, 2015</div>
+        <div class="typo-white">May 28 - 29, 2015</div>
         <div>San Francisco, CA</div>
       </div>
-    </core-toolbar>
+    </paper-toolbar>
     <div class="drawer-panel-content" flex>
-      <core-menu id="drawer-menu" selected="{% .Slug %}" valueattr="label">
+      <paper-menu id="drawer-menu" selected="{% .Slug %}" attr-for-selected="label">
         <paper-item label="home">
-          <a href="./" data-ajax-link data-anim-drawer data-track-link="nav-drawer-home">
-            <i18n-msg msgid="home">Home</i18n-msg>
-          </a>
+          <a href="./" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-home">Home</a>
         </paper-item>
         <paper-item label="about">
-          <a href="about" data-ajax-link data-anim-drawer data-track-link="nav-drawer-about">
-            <i18n-msg msgid="about">About</i18n-msg>
-          </a>
+          <a href="about" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-about">About</a>
         </paper-item>
         <paper-item label="schedule">
-          <a href="schedule#day1" data-ajax-link data-anim-drawer data-track-link="nav-drawer-schedule">
-            <i18n-msg msgid="schedule">Schedule</i18n-msg>
-          </a>
+          <a href="schedule#day1" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-schedule">Schedule</a>
         </paper-item>
         <paper-item label="offsite">
-          <a href="videos" data-ajax-link data-anim-drawer data-track-link="nav-drawer-videos">Videos</a>
+          <a href="videos" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-videos">Videos</a>
         </paper-item>
         <paper-item label="onsite">
-          <a href="onsite" data-ajax-link data-anim-drawer data-track-link="nav-drawer-onsite">
-            <i18n-msg msgid="attend-onsite">Onsite</i18n-msg>
-          </a>
+          <a href="onsite" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-onsite">Onsite</a>
         </paper-item>
         <paper-item label="offsite">
-          <a href="offsite" data-ajax-link data-anim-drawer data-track-link="nav-drawer-offsite">
-            <i18n-msg msgid="attend-offsite">Offsite</i18n-msg>
-          </a>
+          <a href="offsite" data-ajax-link data-anim-drawer
+             data-track-link="nav-drawer-offsite">Offsite</a>
         </paper-item>
-      </core-menu>
+      </paper-menu>
     </div>
   </div>
   <div main>
 
     <div id="content-container">
 
-    <template is="auto-binding" id="t">
+    <template is="dom-bind" id="t">
 
-      <google-signin clientId="{% .ClientID %}"
+      <google-signin client-id="{% .ClientID %}"
                      scopes="https://www.googleapis.com/auth/drive.appfolder"
                      user="{{currentUser}}"></google-signin>
 
       <!-- Responsive handlers -->
-      <core-media-query id="mq-phone" query="(min-width:320px) and (max-width:767px)"
-                        queryMatches="{{isPhoneSize}}"></core-media-query>
-      <core-media-query id="mq-tablet" query="(min-width:768px) and (max-width:944px)"
-                        queryMatches="{{isTabletSize}}"></core-media-query>
-      <core-media-query id="mq-desktop" query="(min-width:945px)"
-                        queryMatches="{{isDesktopSize}}"></core-media-query>
+      <iron-media-query id="mq-phone" full query="(min-width:320px) and (max-width:767px)"
+                        query-matches="{{isPhoneSize}}"></iron-media-query>
+      <iron-media-query id="mq-tablet" full query="(min-width:768px) and (max-width:944px)"
+                        query-matches="{{isTabletSize}}"></iron-media-query>
+      <iron-media-query id="mq-desktop" query="(min-width:945px)"
+                        query-matches="{{isDesktopSize}}"></iron-media-query>
 
       <header class="masthead {% template "mastheadBgClass" .%} js-experiment-instrument js-experiment-instrument--no-top-margin" layout vertical>
         <div class="masthead__ripple">
           <div class="masthead__ripple__content" id="masthead-ripple"></div>
         </div>
-        <core-toolbar id="navbar" class="{{ {'core-narrow': isPhoneSize} | tokenList }}" role="navigation">
-          <paper-icon-button icon="menu" core-drawer-toggle></paper-icon-button>
-          <div flex disabled?="{{selectedPage === 'home'}}">
-            <a href="./" class="io-logo-link" data-ajax-link data-track-link="nav-home"
-                on-click="{{setSelectedPageToHome}}"
-                         data-transition="masthead-ripple-transition" aria-label="Home" tabindex="0">
+        <paper-toolbar id="navbar" role="navigation">
+          <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+          <div flex disabled$="{{_isPage('home', selectedPage)}}">
+            <a href="./" class="io-logo-link"
+                on-click="setSelectedPageToHome"
+                data-track-link="nav-home" data-ajax-link
+                data-transition="masthead-ripple-transition">
               <div class="io-logo" iologodestination></div>
             </a>
             <div class="masthead-meta--corner">
@@ -264,63 +371,56 @@ limitations under the License.
               <h4 class="masthead-subtitle">Moscone Center West,<br>San Francisco, CA</h4>
             </div>
           </div>
-          <paper-tabs class="white {{pages[selectedPage].mastheadBgClass}}" valueattr="label" selected="{{selectedPage}}" link noink>
+          <paper-tabs class$="white {{_computeMastheadClass(pages, selectedPage)}}"
+              attr-for-selected="label" selected="{{selectedPage}}" noink>
             <paper-tab label="about" role="">
-              <a href="about" data-ajax-link data-track-link="nav-about" data-transition="masthead-ripple-transition" layout horizontal center>
-                <i18n-msg msgid="about">About</i18n-msg>
-              </a>
+              <a href="about" data-ajax-link data-track-link="nav-about" data-transition="masthead-ripple-transition" layout horizontal center>About</a>
             </paper-tab>
             <paper-tab label="schedule" role="">
-              <a href="schedule#day1" data-ajax-link data-track-link="nav-schedule" data-transition="masthead-ripple-transition" layout horizontal center>
-                <i18n-msg msgid="schedule">Schedule</i18n-msg>
-              </a>
+              <a href="schedule#day1" data-ajax-link data-track-link="nav-schedule" data-transition="masthead-ripple-transition" layout horizontal center>Schedule</a>
             </paper-tab>
             <paper-tab label="videos" role="">
               <a href="videos" data-ajax-link data-track-link="nav-videos" data-transition="masthead-ripple-transition" layout horizontal center>Videos</a>
             </paper-tab>
             <paper-tab label="onsite" role="">
-              <a href="onsite" data-ajax-link data-track-link="nav-onsite" data-transition="masthead-ripple-transition" layout horizontal center>
-                <i18n-msg msgid="attend-onsite">Onsite</i18n-msg>
-              </a>
+              <a href="onsite" data-ajax-link data-track-link="nav-onsite" data-transition="masthead-ripple-transition" layout horizontal center>Onsite</a>
             </paper-tab>
             <paper-tab label="offsite" role="">
-              <a href="offsite" data-ajax-link data-track-link="nav-offsite" data-transition="masthead-ripple-transition" layout horizontal center>
-                <i18n-msg msgid="attend-offsite">Offsite</i18n-msg>
-              </a>
+              <a href="offsite" data-ajax-link data-track-link="nav-offsite" data-transition="masthead-ripple-transition" layout horizontal center>Offsite</a>
             </paper-tab>
           </paper-tabs>
-          <span id="signin-nav-elements" class="{{isPhoneSize ? '' : pages[selectedPage].mastheadBgClass}}"
-                layout horizontal center>
+          <span id="signin-nav-elements" layout horizontal center
+                class$="{{_computeSignNavElementsClass(isPhoneSize, pages, selectedPage)}}">
             <!-- Note: Use on-click instead of on-tap so oauth popup is not blocked. Needs user gesture. -->
             <!-- /fakesignin is not a real endpoint, but we need it to trick router not
                  to return early from the document-level touchstart listener on mobile. -->
-            <span class="anchor-like button-link" data-track-link="nav-signin" on-click="{{signIn}}" hidden?="{{currentUser}}">Sign in</span>
-            <template if="{{currentUser}}">
-              <img _src="{{currentUser.picture}}" class="profilepic">
-              <paper-menu-button>
-                <paper-icon-button icon="io:more-vert" aria-label="Settings"></paper-icon-button>
-                <paper-dropdown id="signin-settings-panel" class="dropdown" halign="right" valign="top"
-                                on-core-overlay-open="{{getNotificationState}}"
-                                duration="200">
+            <span class="anchor-like button-link" data-track-link="nav-signin"
+                  on-click="signIn" hidden="{{currentUser}}">Sign in</span>
+            <template is="dom-if" if="{{currentUser}}" restamp>
+              <img src$="{{currentUser.picture}}" class="profilepic">
+              <paper-menu-button horizontal-align="right" vertical-align="top">
+                <paper-icon-button icon="io:more-vert" class="dropdown-trigger"
+                                   aria-label="Settings"></paper-icon-button>
+<!-- TODO: update events polymer 1.0 -->
+                <div id="signin-settings-panel"  class="dropdown-content"
+                                on-paper-dropdown-open="getNotificationState">
                   <div class="card-content" layout horizontal>
-                    <div><img _src="{{currentUser.picture}}" class="profilepic"></div>
+                    <div><img src$="{{currentUser.picture}}" class="profilepic"></div>
                     <div>
-                      <div>{{currentUser.name}}</div>
-                      <div class="settings-email">{{currentUser.email}}</div>
+                      <div>[[currentUser.name]]</div>
+                      <div class="settings-email">[[currentUser.email]]</div>
                     </div>
                   </div>
                   <div class="card-content notification__feature">
                     <h4>Notifications</h4>
-                    <core-label horizontal layout>
-                      <paper-checkbox autoFocus for
-                                      checked?="{{currentUser.notify}}"
-                                      disabled?="{{currentUser.notify === null}}"
-                                      on-tap="{{updateNotifyUser}}"></paper-checkbox>
+                    <iron-label horizontal layout>
+                      <paper-checkbox checked$="{{currentUser.notify}}"
+                                      disabled$="{{_disableNotify(currentUser.notify)}}"
+                                      on-tap="updateNotifyUser"></paper-checkbox>
                       <h5>I want to receive notifications from the Google I/O 2015 web app.</h5>
-                    </core-label>
+                    </iron-label>
                     <p>If this option is deselected, I understand I won't be notified when:</p>
                     <ul>
-                      <!-- <li>New Extended events register near me</li> -->
                       <li>I/O is about to start</li>
                       <li>Events added to My Schedule are about to start</li>
                       <li>Videos of sessions added to My Schedule are available</li>
@@ -328,86 +428,66 @@ limitations under the License.
                     <p class="settings-note"><b>Note</b>: Notifications are activated per device. To receive notifications on multiple devices, sign in on each device, enable notifications, and make sure you're online. All device notifications can be turned on/off at any time in the settings panel.</p>
                   </div>
                   <div class="card-content" layout horizontal justified>
-                    <a href="https://www.google.com/intl/en/policies/terms/" data-track-link="login-tos" target="_blank">Terms of Service</a>
-                    <span class="anchor-like" data-track-link="login-signout" on-tap="{{signOut}}">Sign out</span>
+                    <a href="https://www.google.com/intl/en/policies/terms/"
+                       data-track-link="login-tos" target="_blank">Terms of Service</a>
+                    <span class="anchor-like" data-track-link="login-signout"
+                          on-tap="signOut">Sign out</span>
                   </div>
-                </paper-dropdown>
+                </div>
               </paper-menu-button>
             </template>
           </span>
-        </core-toolbar>
+        </paper-toolbar>
 
-        <!-- backdrop shouldn't be applied on ios - github.com/Polymer/paper-dialog/issues/16 -->
-        <paper-dialog class="card card__signin-intro"
-                      transition="core-transition-center" autoCloseDisabled backdrop?="{{!isIOS}}" layered="false">
-          <div class="card-content">
-            <h4 class="card__title">Sign in</h4>
-            <p>By signing in to the 2015 I/O web app, you can create a customized I/O schedule.</p>
-            <div class="notification__feature">
-              <p>Once signed-in, you can choose to receive notifications on this device when:</p>
-              <ul>
-                <!-- <li>New I/O Extended events register near your location</li> -->
-                <li>I/O is about to start</li>
-                <li>Events added to My Schedule are about to start</li>
-                <li>Videos of sessions added to My Schedule are available</li>
-              </ul>
-              <p class="settings-note"><b>Note</b>: Notifications are activated per device. To receive notifications on multiple devices, sign in on each device, enable notifications, and make sure you're online. All device notifications can be turned on/off at any time in the settings panel.</p>
-            </div>
-          </div>
-          <div class="card-content" layout horizontal justified>
-            <span class="anchor-like" role="link" tabindex="0" data-track-link="signin-intro-signin" on-click="{{signIn}}" core-overlay-toggle>Sign in</span>
-            <a href="#" data-track-link="signin-intro-later" core-overlay-toggle>Maybe later</a>
-          </div>
-        </paper-dialog>
-
-        <div class="masthead-container" flex end?="{{!isPhoneSize}}"
-             layout vertical?="{{isPhoneSize}}" horizontal?="{{isDesktopSize || isTabletSize}}">
-          <div class="masthead-meta {{ {transition: pageTransitioningOut} | tokenList }}"
-               layout vertical end-justified?="{{isPhoneSize}}" flex>
-            <template id="template-masthead-container" ref="" bind>{% template "masthead" .%}</template>
+        <div class="masthead-container" flex end$="{{!isPhoneSize}}"
+             layout vertical$="{{isPhoneSize}}" horizontal$="{{!isPhoneSize}}">
+          <div class$="masthead-meta {{_addClass('transition', pageTransitioningOut)}}"
+               layout vertical flex end-justified$="{{isPhoneSize}}">
+            <div id="template-masthead-container">{% template "masthead" .%}</div>
           </div>
         </div>
-        <experiment-fab-container class="fab" mini?="{{isPhoneSize}}" mode="{{mode}}" playmode="{{playmode}}" recordmode="{{recordmode}}" direction="{{direction}}" hidden?="{{selectedPage !== 'home'}}"></experiment-fab-container>
-        <a href="schedule#myschedule" data-ajax-link data-track-link="fab-myschedule"
-           hidden?="{{selectedPage === 'home'}}">
-          <paper-fab class="fab" icon="event" title="My Schedule" mini?="{{isPhoneSize}}"></paper-fab>
+        <a href="schedule#myschedule" data-ajax-link data-track-link="fab-myschedule">
+          <paper-fab class="fab" icon="event" title="My Schedule"
+                     mini$="{{isPhoneSize}}"></paper-fab>
         </a>
       </header>
 
-      <!-- <template if="{{selectedPage === 'home'}}">
+      <!-- <template is="dom-if" if="{{_isPage('home', selectedPage)}}" restamp>
         <div id="iolive" class="{{ {show: selectedPage === 'home'} | tokenList }}" fit>
           <io-live mode="{{liveModuleMode}}" date="{% .StartDateStr %}"
                    sessions="{{scheduleData.sessions}}"
                    speakers="{{scheduleData.speakers}}"
-                   userSessions="{{savedSessions}}"
-                   fetchingUserData="{{scheduleFetchingUserData}}"
-                   socialPosts="{{socialPosts}}"
+                   user-sessions="{{savedSessions}}"
+                   fetching-user-data="{{scheduleFetchingUserData}}"
+                   social-posts="{{socialPosts}}"
                    {% .LiveIDs | json | safeAttr "liveStreamChannelIds" %}
-                   autoOpenFab="{{pageTransitionDone}}" fit>
+                   auto-open-fab="{{pageTransitionDone}}" fit>
             <h2>I/O is starting soon. #io15</h2>
           </io-live>
         </div>
       </template> -->
 
-      <main class="io-main {{ {transitionIn: pageTransitioningIn, transitionOut: pageTransitioningOut} | tokenList }}">
-        <template id="template-content-container" ref="" bind>{% template "content" .%}</template>
+      <main class$="io-main {{_addClass('transitionIn', pageTransitioningIn)}} {{_addClass('transitionOut', pageTransitioningOut)}}">
+        <div id="template-content-container">{% template "content" .%}</div>
       </main>
 
       <footer layout vertical>
-      <!-- <footer layout vertical hidden?="{{selectedPage === 'home'}}"> -->
+      <!-- <footer layout vertical hidden$="{{_isPage('home', selectedPage)}}"> -->
 
-        <i18n-msg id="share-text" msgid="share-text" hidden>#io15 brings together devs to explore the next generation of tech and mobile. Join us online or in person May 28-29: https://google.com/io</i18n-msg>
+        <span id="share-text" msgid="share-text" hidden>#io15 brings together devs to explore the next generation of tech and mobile. Join us online or in person May 28-29: https://google.com/io</span>
 
         <div layout horizontal justified class="footer-top footer-content">
           <span class="footer-share-links--top">
-            <a href="https://plus.google.com/+GoogleDevelopers" target="_blank" class="share-icon" data-track-link="footer-share-gplus" data-share-type="gplus" on-click="{{openShareWindow}}"><core-icon icon="io:post-gplus"></core-icon></a>
-            <a href="https://twitter.com/googledevs" target="_blank" class="share-icon" data-track-link="footer-share-twitter" data-share-type="twitter" on-click="{{openShareWindow}}"><core-icon icon="io:post-twitter"></core-icon></a>
+            <a href="https://plus.google.com/+GoogleDevelopers" target="_blank" class="share-icon" data-track-link="footer-share-gplus" data-share-type="gplus" on-click="openShareWindow"><iron-icon icon="io:post-gplus"></iron-icon></a>
+            <a href="https://twitter.com/googledevs" target="_blank" class="share-icon" data-track-link="footer-share-twitter" data-share-type="twitter" on-click="openShareWindow"><iron-icon icon="io:post-twitter"></iron-icon></a>
           </span>
-          <span>
-            <a href="{{eeFooterLink}}" class="invisible" hidden?="{{!eeFooterLink}}" target="_blank" data-track-link="footer-challenge-link">Ready for a challenge?</a>
-          </span>
-          <core-a11y-keys target="{{$.backtotop}}" keys="enter" on-keys-pressed="{{backToTop}}"></core-a11y-keys>
-          <a href="#" id="backtotop" class="footer-backtotop" on-click="{{backToTop}}" data-track-link="footer-backtop-new">Back to the top <core-icon icon="expand-less"></core-icon></a>
+          <!-- <span>
+            <a href$="{{eeFooterLink}}" class="invisible" hidden$="{{!eeFooterLink}}" target="_blank" data-track-link="footer-challenge-link">Ready for a challenge?</a>
+          </span> -->
+
+<!-- TODO: update polymer 1.0 -->
+<!-- <iron-a11y-keys target="{{$.backtotop}}" keys="enter" on-keys-pressed="backToTop"></iron-a11y-keys> -->
+          <a href="#" id="backtotop" class="footer-backtotop" on-click="backToTop" data-track-link="footer-backtop-new">Back to the top <iron-icon icon="expand-less"></iron-icon></a>
         </div>
 
         <div class="footer-content footer-content--middle" layout horizontal>
@@ -415,19 +495,26 @@ limitations under the License.
           <nav layout vertical end justified>
             <span><a href="faq" data-ajax-link data-track-link="footer-faq">FAQ</a></span>
             <span><a href="https://www.google.com/events/io" target="_blank" data-track-link="footer-2014-site">I/O 2014</a></span>
-            <paper-dropdown-menu label="Google Developers">
-              <paper-dropdown valign="bottom" halign="right" class="dropdown" duration="200">
+
+            <paper-dropdown-menu label="Google Developers" no-label-float
+                                 vertical-align="bottom" noink>
+              <paper-listbox class="dropdown-content">
                 <paper-item><a href="https://developers.google.com" target="_blank" data-track-link="footer-link-devsite">developers.google.com</a></paper-item>
                 <paper-item><a href="https://plus.google.com/+GoogleDevelopers" target="_blank" data-track-link="footer-link-gplus">+googledevelopers</a></paper-item>
                 <paper-item><a href="https://twitter.com/googledevs" target="_blank" data-track-link="footer-link-twitter">@googledevs</a></paper-item>
                 <paper-item><a href="http://googledevelopers.blogspot.com/" target="_blank" data-track-link="footer-link-blog">Blog</a></paper-item>
-              </paper-dropdown>
+              </paper-listbox>
             </paper-dropdown-menu>
+
             <span><a href="https://plus.google.com/u/0/communities/105113874753230740413" target="_blank" data-track-link="footer-community">I/O Community</a></span>
             <span><a href="https://www.google.com/intl/en/policies/privacy/" target="_blank">Privacy</a> &amp; <a href="https://www.google.com/intl/en/policies/terms/" target="_blank">Terms</a></span>
-            <span class="footer-share-links--bottom">
-              <a href="https://plus.google.com/+GoogleDevelopers" target="_blank" class="share-icon"  data-track-link="footer-share-gplus" data-share-type="gplus" on-click="{{openShareWindow}}"><core-icon icon="io:post-gplus"></core-icon></a>
-              <a href="https://twitter.com/googledevs" target="_blank" class="share-icon" data-track-link="footer-share-twitter" data-share-type="twitter" on-click="{{openShareWindow}}"><core-icon icon="io:post-twitter"></core-icon></a>
+            <span class="footer-share-links--bottom" layout horizontal>
+              <a href="https://plus.google.com/+GoogleDevelopers" target="_blank"
+                 class="share-icon"  data-track-link="footer-share-gplus" data-share-type="gplus"
+                 on-click="openShareWindow"><iron-icon icon="io:post-gplus"></iron-icon></a>
+              <a href="https://twitter.com/googledevs" target="_blank" class="share-icon"
+                 data-track-link="footer-share-twitter" data-share-type="twitter"
+                 on-click="openShareWindow"><iron-icon icon="io:post-twitter"></iron-icon></a>
             </span>
           </nav>
         </div>
@@ -442,9 +529,9 @@ limitations under the License.
 
     </div>
   </div>
-</core-drawer-panel>
+</paper-drawer-panel>
 
-<io-toast id="toast" duration="9000" autoCloseDisabled></io-toast>
+<io-toast id="toast" duration="9000"></io-toast>
 <!--
   Append messages from the toast to this aria-live region to have
   them read aloud
@@ -487,7 +574,7 @@ limitations under the License.
   if (IOWA.Util.supportsHTMLImports) {
     init();
   } else {
-    document.addEventListener('polymer-ready', init);
+    document.addEventListener('HTMLImportsLoaded', init);
   }
 
 })();

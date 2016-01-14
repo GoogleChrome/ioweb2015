@@ -7,7 +7,9 @@
 
 {% define "masthead" %}
   <h1>Onsite</h1>
-  <paper-tabs id="subpage-tabs" class="white" selected="{{pages['onsite'].selectedSubpage}}" valueattr="label" link>
+  <paper-tabs id="subpage-tabs" class="white"
+              selected="{{pages.onsite.selectedSubpage}}"
+              attr-for-selected="label">
     <paper-tab label="event" role="">
       <a href="#event" data-track-link="onsite-event" data-ajax-link
                        layout horizontal center-center>Event</a>
@@ -21,55 +23,63 @@
 
 {% define "content" %}
 
-<core-toolbar class="navbar__overlay navbar__overlay--map" aria-hidden="{{!mapGalleryActive}}" fit>
-  <paper-icon-button icon="arrow-back" on-tap="{{closeMapGallery}}" aria-label="Close map" tabindex="{{mapGalleryActive ? 0 : -1}}"></paper-icon-button>
+<paper-toolbar class="navbar__overlay navbar__overlay--map"
+               aria-hidden="[[!mapGalleryActive]]" fit>
+  <paper-icon-button icon="arrow-back" on-tap="closeMapGallery"
+                     aria-label="Close map"
+                     tabindex="{{_enableTabIndex(mapGalleryActive)}}"></paper-icon-button>
   <span flex>Venue map</span>
-</core-toolbar>
+</paper-toolbar>
 
-<io-gallery items='["images/onsite/map/io_floor1_label.jpg", "images/onsite/map/io_floor2_label.jpg", "images/onsite/map/io_floor3_label.jpg"]' hidden?="{{!mapGalleryActive}}" active="{{mapGalleryActive}}"
-            mobile="{{isPhoneSize}}" height="515" sizing="contain" backgroundColor="black" fit></io-gallery>
+<io-gallery
+    items='["images/onsite/map/io_floor1_label.jpg","images/onsite/map/io_floor2_label.jpg","images/onsite/map/io_floor3_label.jpg"]'
+    hidden$="{{!mapGalleryActive}}"
+    active="{{mapGalleryActive}}"
+    mobile="{{isPhoneSize}}"
+    height="515" sizing="contain" background-color="black" fit></io-gallery>
 
 <div class="subpage__container">
 
-  <section class="subpage-event subpage__content {{ {active: pages['onsite'].selectedSubpage == 'event'} | tokenList}}">
+  <section class$="subpage-event subpage__content {{_computeActiveClassForSubpage(pages.onsite.selectedSubpage, 'onsite', 'event')}}">
 
     <div class="card__container card__container--top slide-up">
-      <div class="card js-experiment-visualizer">
+      <div class="card">
         <div class="card-content">
           <h3 class="card__title">Venue map</h3>
           <div>Find your way around I/O and participate in sandbox talks, attend sessions, explore the codelab space, and more with our floor-by-floor venue map of Moscone West.</div>
         </div>
         <div class="card-content anchor-like">
-          <span role="link" tabindex="0" data-track-link="onsite-venue-map" on-tap="{{toggleMapGallery}}">See venue map</span>
+          <span role="link" tabindex="0" data-track-link="onsite-venue-map"
+                on-tap="toggleMapGallery">See venue map</span>
         </div>
       </div>
     </div>
 
     <div class="slide-up-delay">
-      <section class="page__section onsite__pic onsite__pic--reg js-experiment-instrument"></section>
+      <section class="page__section onsite__pic onsite__pic--reg"></section>
 
-      <section id="sandbox" class="page__section bg-light-grey js-experiment-instrument">
+      <section id="sandbox" class="page__section bg-light-grey">
         <h2>Sandbox</h2>
         <div>Interactive zones on the second and third floors for you to play, explore, and collaborate with the latest from Google.</div>
         <div class="sandbox__details sidebyside" layout horizontal wrap>
-          <div flex?="{{!isPhoneSize}}">
+          <div flex$="[[!isPhoneSize]]">
             <h4>Sandbox Talks</h4>
             <div>Shorter talks in pop-up spaces in the sandbox, letting you hear directly from us about developing with our latest APIs and tools.</div>
           </div>
-          <div flex?="{{!isPhoneSize}}">
+          <div flex$="[[!isPhoneSize]]">
             <h4>Code Labs</h4>
             <div>Hands-on space to work through technical modules at your own pace, with experts on hand to help you out.</div>
           </div>
-          <div flex?="{{!isPhoneSize}}">
+          <div flex$="[[!isPhoneSize]]">
             <h4>There's more</h4>
             <div>Swing by office hours, workshops and demos throughout the space.</div>
           </div>
         </div>
       </section>
 
-      <section class="page__section pics__section js-experiment-instrument">
+      <section class="page__section pics__section">
         <div layout horizontal>
-          <div class="photo__afterhours" flex two?="{{isDesktopSize}}"></div>
+          <div class="photo__afterhours" flex two$="[[isDesktopSize]]"></div>
           <div layout vertical flex>
             <div class="photo__afterhours--top" flex></div>
             <div class="photo__afterhours--bottom" flex></div>
@@ -78,7 +88,7 @@
       </section>
 
       <div class="card__container">
-        <div class="card js-experiment-visualizer">
+        <div class="card">
           <div class="card-content">
             <h3 class="card__title">After Hours</h3>
             <div>Registered attendees were invited to party with us After Hours, mingling in a fun and relaxed environment while enjoying food, drinks, music, games and more.</div>
@@ -86,16 +96,16 @@
         </div>
       </div>
 
-      <!-- <section id="community" class="page__section bg-light-grey js-experiment-instrument">
+      <!-- <section id="community" class="page__section bg-light-grey">
         <h2>Community Events</h2>
         <div>The Sandbox is hands-on inspiration. Post up at a workstation to work through modules on Android, Chrome, Cloud and APIs with experts on hand for guidance, or swing by to chat and exchange ideas with Googlers as they demo tools.</div>
         <div class="sandbox__details sidebyside" layout horizontal wrap>
-          <div flex?="{{!isPhoneSize}}">
+          <div flex$="{{!isPhoneSize}}">
             <h4>Donations</h4>
             <p>Sed posuere consectetur est at lobortis. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
             <a href="#">Learn more</a>
           </div>
-          <div flex?="{{!isPhoneSize}}">
+          <div flex$="{{!isPhoneSize}}">
             <h4>Fundraisers</h4>
             <p>Sed posuere consectetur est at lobortis. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
             <a href="#">Learn more</a>
@@ -103,7 +113,7 @@
         </div>
       </section> -->
 
-      <section id="hashtag" class="page__section bg-cyan js-experiment-instrument">
+      <section id="hashtag" class="page__section bg-cyan">
         <div class="io__hash"></div>
       </section>
     </div>
@@ -111,10 +121,10 @@
   </section>
 
   <section
-      class="subpage-travel subpage__content {{ {active: pages['onsite'].selectedSubpage == 'travel'} | tokenList}}">
+      class$="subpage-travel subpage__content {{_computeActiveClassForSubpage(pages.onsite.selectedSubpage, 'onsite', 'travel')}}">
 
     <div class="card__container card__container--top slide-up">
-      <div class="card js-experiment-visualizer">
+      <div class="card">
         <div class="card-content">
           <h3>Google I/O is Innovation in the Open. Attendees have the opportunity to connect face-to-face with developers and designers from around the world, check the latest product releases first hand, and chat directly with Googlers.</h3>
         </div>
@@ -122,13 +132,13 @@
     </div>
 
     <div class="slide-up-delay">
-      <section class="page__section onsite__pic js-experiment-instrument"></section>
+      <section class="page__section onsite__pic"></section>
 
-      <section id="traveldetails" class="page__section bg-light-grey js-experiment-instrument">
+      <section id="traveldetails" class="page__section bg-light-grey">
         <h2>Travel details</h2>
         <div class="sidebyside" layout horizontal wrap>
-          <div flex?="{{!isPhoneSize}}">
-            <h4 layout horizontal center><core-icon icon="io:directions" aria-hidden="true"></core-icon> Getting to San Francisco</h4>
+          <div flex$="[[!isPhoneSize]]">
+            <h4 layout horizontal center><iron-icon icon="io:directions" aria-hidden="true"></iron-icon> Getting to San Francisco</h4>
             <p>Here are the three major airports in the Bay Area with international airline service:</p>
             <ul>
               <li><a href="https://www.google.com/maps/dir/San+Francisco+International+Airport,+San+Francisco,+CA+94128/Moscone+Center+West,+800+Howard+Street,+San+Francisco,+CA+94103,+United+States/@37.696524,-122.4990949,12z/data=!3m2!4b1!5s0x808580871e84c835:0x6898ed8f6d5ebf0b!4m17!4m16!1m5!1m1!1s0x808f778c55555555:0xa4f25c571acded3f!2m2!1d-122.378955!2d37.621313!1m5!1m1!1s0x80858087111726eb:0x635ab8069f6523c3!2m2!1d-122.404025!2d37.783083!2m2!7e2!8j1421306400!3e0?hl=en" target="_blank">San Francisco International Airport (SFO)</a><br>
@@ -142,8 +152,8 @@
             <!-- <h5><i18n-msg msgid="airport-shuttle">Airport Shuttle</i18n-msg></h5>
             <p>Super Shuttle International is offering a discount to all Google I/O attendees. Reservations must be booked in advance either <a href="https://www.supershuttle.com/default.aspx?GC=G66Z7">online</a> or by calling 1-800-BLUE-VAN (1-800-258-3826). The discount code for Google I/O is G66Z7.</p> -->
           </div>
-          <div flex?="{{!isPhoneSize}}">
-            <h4 layout horizontal center><core-icon icon="io:hotel" aria-hidden="true"></core-icon> Hotels</h4>
+          <div flex$="[[!isPhoneSize]]">
+            <h4 layout horizontal center><iron-icon icon="io:hotel" aria-hidden="true"></iron-icon> Hotels</h4>
             <p>We have room blocks at the following hotels:</p>
             <ul>
               <li><a href="https://secure3.hilton.com/en_US/hi/reservation/book.htm?ctyhocn=SFOSFHH&spec_plan=GIO" target="_blank">Parc 55</a><br>
@@ -166,8 +176,8 @@
               </li>
             </ul>
           </div>
-          <div flex?="{{!isPhoneSize}}">
-            <h4 layout horizontal center><core-icon icon="io:place" aria-hidden="true"></core-icon> Moscone Center West</h4>
+          <div flex$="[[!isPhoneSize]]">
+            <h4 layout horizontal center><iron-icon icon="io:place" aria-hidden="true"></iron-icon> Moscone Center West</h4>
             <p>The <a href="https://www.moscone.com/directions/index.shtml" target="_blank">Moscone Center</a> is located at the corner of 4th &amp; Howard Streets at 800 Howard St., San Francisco, CA 94103.</p>
             <p>Public transportation to the Moscone Center is accessible via:</p>
             <ul>
@@ -178,7 +188,7 @@
               <li><a href="http://www.caltrain.com/" target="_blank">Caltrain</a><br>
               Regional rail system</li>
             </ul>
-            <p><a href="http://get.lyft.com/lyftxgoogle/?code=GOOGLEIO" target="_blank"><core-icon src="images/onsite/lyft_pink.svg" aria-hidden="true" class="lyft-logo"></core-icon></a> We've also partnered with Lyft to make sure your journey is as easy as possible. New users can download Lyft and apply the promo code <a href="http://get.lyft.com/lyftxgoogle/?code=GOOGLEIO" target="_blank">GOOGLEIO</a> to get $50 off their first 10 rides. Current Lyft users will receive promo codes shortly before I/O.</p>
+            <p><a href="http://get.lyft.com/lyftxgoogle/?code=GOOGLEIO" target="_blank"><iron-icon src="images/onsite/lyft_pink.svg" aria-hidden="true" class="lyft-logo"></iron-icon></a> We've also partnered with Lyft to make sure your journey is as easy as possible. New users can download Lyft and apply the promo code <a href="http://get.lyft.com/lyftxgoogle/?code=GOOGLEIO" target="_blank">GOOGLEIO</a> to get $50 off their first 10 rides. Current Lyft users will receive promo codes shortly before I/O.</p>
           </div>
         </div>
       </section>
@@ -195,7 +205,7 @@
       var reverse = opt_reverse || false;
 
       var gallery = IOWA.Elements.Main.querySelector('io-gallery');
-      var galleryAnimation = new Animation(gallery, [
+      var galleryAnimation = new KeyframeEffect(gallery, [
         {opacity: 0}, {opacity: 1}
       ], {
         duration: 500,
@@ -245,7 +255,7 @@
         IOWA.A11y.removeFocusStates(SUBTAB_SELECTOR);
       };
 
-      IOWA.Elements.Template.closeMapGallery = function(e, detail, sender) {
+      IOWA.Elements.Template.closeMapGallery = function(e, detail) {
 
         runMapGalleryAnimation(true, function() {
           IOWA.Elements.Template.mapGalleryActive = false;
@@ -254,12 +264,14 @@
         history.replaceState({}, null, location.pathname); // Remove #map hash from URL.
       };
 
-      IOWA.Elements.Template.toggleMapGallery = function(e, detail, sender) {
+      IOWA.Elements.Template.toggleMapGallery = function(e, detail) {
         e.preventDefault();
 
-        if (sender && sender.hasAttribute('data-track-link')) {
+        var target = Polymer.dom(e).rootTarget;
+
+        if (target && target.hasAttribute('data-track-link')) {
           IOWA.Analytics.trackEvent(
-              'link', 'click', sender.getAttribute('data-track-link'));
+              'link', 'click', target.getAttribute('data-track-link'));
         } else {
           IOWA.Analytics.trackEvent('link', 'click', 'onsite-venue-map-deeplink');
         }
