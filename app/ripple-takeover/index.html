@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="author" content=""/>
+
+    <!-- Magic viewport switches on Ganesh -->
+    <meta name="viewport"
+          content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>Google I/O 2015 - Card Takeover Proto</title>
+    <link rel="stylesheet" href="index.css">
+    <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
+    <link rel="import" href="ripple-takeover.html">
+  </head>
+
+  <body>
+    <header class="site-header">
+      <nav class="site-header__navigation">
+        <ul>
+          <li class="site-header__navigation-item">About</li>
+          <li class="site-header__navigation-item">Schedule</li>
+          <li class="site-header__navigation-item">Attend Onsite</li>
+          <li class="site-header__navigation-item">Attend Off-site</li>
+          <li class="site-header__navigation-item">Registration</li>
+          <li class="site-header__navigation-item">Sign in</li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <div class="io-meta">
+        <div class="io-meta__logo"></div>
+        <div class="io-meta__date-time"></div>
+      </div>
+
+      <ripple-takeover cardTitle="The Conference"
+                       photo="about-photo.jpg"
+                       rippleColor="#455A64">
+        <div class="pre-takeover">
+          <div class="card">
+            <p class="card__content">
+              Google I/O brings together best-in-class developers to meet on a global stage. Join us to
+              explore emerging technology for mobile and beyond.
+            </p>
+
+            <a href="#"
+               class="js-card-takeover card__takeover-launcher">
+              Learn more about I/O
+            </a>
+          </div>
+        </div>
+
+        <div class="post-takeover">
+          <div class="card">
+            <p class="card__content">
+              I/O is an annual conference hosted by your friends at Google to celebrate the power of
+              technology, showcase the latest and greatest code projects and inspire magic on screens of
+              all sizes.
+            </p>
+          </div>
+        </div>
+      </ripple-takeover>
+    </div>
+
+    <div class="home-photo"></div>
+  </body>
+</html>
