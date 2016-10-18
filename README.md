@@ -22,7 +22,7 @@ Setup
 
 If you plan on modifying source code, be a good citizen and:
 
-1. Install [EditorConfig plugin](http://editorconfig.org/#download) for your favourite browser.
+1. Install [EditorConfig plugin](http://editorconfig.org/#download) for your favourite text editor or IDE.
    The plugin should automatically pick up the [.editorconfig](.editorconfig) settings.
 2. Obey the pre-commit hook that's installed as part of `gulp setup`.
    It will check for JavaScript and code style errors before committing to the `master` branch.
