@@ -48,7 +48,7 @@ func verifyIDToken(c context.Context, t string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sub, ok := token.Claims["sub"].(string)
+  sub, ok := token.Claims.(jwt.MapClaims)["sub"].(string)
 	if !ok {
 		return "", errors.New("verifyIDToken: invalid 'sub' claim")
 	}
